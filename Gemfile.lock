@@ -2,7 +2,8 @@ PATH
   remote: .
   specs:
     generic_api_rails (0.0.1)
-      rails (~> 4.0.4)
+      koala
+      rails (~> 4.0.0)
 
 GEM
   remote: https://rubygems.org/
@@ -31,17 +32,25 @@ GEM
       multi_json (~> 1.3)
       thread_safe (~> 0.1)
       tzinfo (~> 0.3.37)
+    addressable (2.3.6)
     arel (4.0.2)
     builder (3.1.4)
     erubis (2.7.0)
+    faraday (0.9.0)
+      multipart-post (>= 1.2, < 3)
     hike (1.2.3)
     i18n (0.6.9)
+    koala (1.9.0)
+      addressable
+      faraday
+      multi_json
     mail (2.5.4)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.25.1)
     minitest (4.7.5)
     multi_json (1.9.2)
+    multipart-post (2.0.0)
     polyglot (0.3.4)
     rack (1.5.2)
     rack-test (0.6.2)
@@ -59,7 +68,7 @@ GEM
       activesupport (= 4.0.4)
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (10.3.0)
+    rake (10.3.1)
     sprockets (2.12.1)
       hike (~> 1.2)
       multi_json (~> 1.0)
