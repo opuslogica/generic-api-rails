@@ -28,7 +28,7 @@ GenericApiRails.config do |config|
     # is returned by this into something that is readable by
     # authenticate_with!
     
-    ApiToken.login(@params,@request)
+    ApiToken.sign_in(@params,@request)
   end
   
   config.signup_with do
@@ -38,7 +38,7 @@ GenericApiRails.config do |config|
     # throw whatever errors it wishes, which will be passed along to
     # the client in JSON form.
     
-    ApiToken.signup(@params,@request)
+    ApiToken.sign_up(@params,@request)
   end
 
   # You may also elect to use OmniAuth to allow for user sign in and

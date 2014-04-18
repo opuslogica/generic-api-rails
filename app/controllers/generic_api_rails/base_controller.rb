@@ -1,5 +1,5 @@
 module GenericApiRails
-  class BaseController << ::ApplicationController
+  class BaseController < ::ApplicationController
     before_filter :cors_set_access_control_headers
     before_filter :cors_preflight_check
     before_filter :api_setup
@@ -35,11 +35,11 @@ module GenericApiRails
       @params = params
       @request = request
 
-      begin
-        @authenticated = instance_eval(Config.config.authenticate_with)
-      rescue => e
-        render_result( { :error => "Error authenticating." } , 403 ) and return false
-      end
+      # begin
+        @authenticated = instance_eval(&GenericApiRails.config.authenticate_with)
+      # rescue => e
+      #  render :json =>  { :error => "Error authenticating." } , :status => 403 and return false
+      # end
       
       @action = params[:action]
       @controller = params[:controller]

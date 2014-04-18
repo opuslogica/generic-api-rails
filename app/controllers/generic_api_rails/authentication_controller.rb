@@ -8,13 +8,13 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # token:
     short_lived_token = params[:access_token]
 
-    fb_hash = GenericApiRails::Config.config.facebook_hash
+    fb_hash = GenericApiRails.config.facebook_hash
 
-    APP_ID = fb_hash[:app_id]
-    APP_SECRET = fb_hash[:app_secret]
+    app_id = fb_hash[:app_id]
+    app_secret = fb_hash[:app_secret]
 
     # to upgrade it, hit this URI, and use the token it hands back:
-    token_upgrade_uri = "https://graph.facebook.com/oauth/access_token?client_id=#{APP_ID}&client_secret=#{APP_SECRET}&grant_type=fb_exchange_token&fb_exchange_token=#{short_lived_token}"
+    token_upgrade_uri = "https://graph.facebook.com/oauth/access_token?client_id=#{app_id}&client_secret=#{app_secret}&grant_type=fb_exchange_token&fb_exchange_token=#{short_lived_token}"
 
     begin
       res = URI.parse(token_upgrade_uri).read
@@ -47,17 +47,20 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     @uid = uid
     @email = fb_user[:email]
 
-    render :json => instance_eval(&Config.oauth_with)
+    render :json => instance_eval(&GenericApiRails.config.oauth_with)
   end
 
   def login
     @params = params
+    @request = request
     
-    render :json => instance_eval(&Config.login_with)
+    render :json => instance_eval(&GenericApiRails.config.login_with)
   end
 
   def signup
     @params = params
-    render :json => instance_eval(&Config.signup_with)
+    @request = request
+
+    render :json => instance_eval(&GenericApiRails.config.signup_with)
   end
 end

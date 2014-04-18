@@ -5,9 +5,9 @@ require "generic_api_rails/config"
 module GenericApiRails
   def self.config(&block)
     if block
-      block.call(WebLogin::Config)
+      block.call(GenericApiRails::Config)
     else
-      WebLogin::Config
+      GenericApiRails::Config
     end
   end
 end

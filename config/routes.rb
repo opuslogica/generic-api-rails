@@ -1,8 +1,9 @@
 GenericApiRails::Engine.routes.draw do
+  namespace :generic_api_rails , :path => "/" do
   match '*path' => "base#options", :via => [:options]
   
-  namespace :authentication do
-    get 'facebook'
+  namespace "authentication" do 
+    get 'facebook' 
     post 'facebook'
     get 'login'
     post 'login'
@@ -12,6 +13,7 @@ GenericApiRails::Engine.routes.draw do
 
   get 'version' => 'misc#version'
   get 'whoami' => 'misc#whoami'
+  end
 
   # get ':model' => 'rest#index'
   # get ':model/:id' => 'rest#show'
