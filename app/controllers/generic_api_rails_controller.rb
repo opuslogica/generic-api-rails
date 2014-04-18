@@ -1,0 +1,3 @@
+class GenericApiRailsController < ApplicationController
+  
+end

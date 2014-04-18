@@ -7,16 +7,18 @@ require "generic_api_rails/version"
 Gem::Specification.new do |s|
   s.name        = "generic_api_rails"
   s.version     = GenericApiRails::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of GenericApiRails."
+  s.authors     = ["Daniel Staudigel"]
+  s.email       = ["dstaudigel@opuslogica.com"]
+  s.homepage    = "http://opuslogica.com/"
+  s.summary     = "Provides a simple API interface for dealing with the database."
   s.description = "TODO: Description of GenericApiRails."
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 4.0.4"
+
+  s.add_runtime_dependency "koala"
 
   s.add_development_dependency "sqlite3"
 end
