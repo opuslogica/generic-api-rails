@@ -15,7 +15,7 @@ GenericApiRails::Engine.routes.draw do
     get 'whoami' => 'misc#whoami'
 
     get ':model' => 'rest#index'
-    get ':model/:id' => 'rest#show'
+    get ':model/:id' => 'rest#read'
     post ':model' => 'rest#create'
     match ':model/:id' => 'rest#update' , :via => [:post,:put,:patch]
     delete ':model/:id' => 'rest#destroy'

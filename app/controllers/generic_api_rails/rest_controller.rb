@@ -51,7 +51,7 @@ module GenericApiRails
       end
     end
 
-    def show
+    def read
       @resource = @model.find(params[:id])
       authorize! @resource
       render :json => @resource
