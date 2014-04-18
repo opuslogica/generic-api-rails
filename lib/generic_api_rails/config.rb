@@ -46,6 +46,19 @@ module GenericApiRails
         @oauth_with = blk if blk
         @oauth_with
       end
+
+      # authorize_with specifies the block to use to determine whether
+      # a certain user is authorized to perform an action on a
+      # resource.  The block should be of the form:
+      # config.authorize_with do |user,action,resource|
+      #
+      # - user is whatever authorize_with returns
+      # - action is a symbol that is :index, :show, :create, :update, :destroy
+      # - resource is an individual model or collection 
+      def authorize_with(&blk)
+        @authorize_with = blk if blk
+        @authorize_with
+      end
       
       # Enable facebook-based API authentication in the app (requires
       # :app_id and :app_secret):
