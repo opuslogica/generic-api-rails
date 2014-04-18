@@ -5,8 +5,8 @@ module GenericApiRails
     end
 
     def whoami
-      render :json => @credential.as_json if @credential
-      render :json => { error: "Nobody!" } if not @credential
+      render :json => @authenticated.as_json if @authenticated
+      render :json => { error: "Nobody!" } if not @authenticated
     end
   end
 end
