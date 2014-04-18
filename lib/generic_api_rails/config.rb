@@ -1,5 +1,7 @@
 module GenericApiRails
   module Config
+    DEFAULT_ERROR_TRANSFORM = proc { |hash| hash }
+
     class << self
       # authenticate_with receives a @params and @request hashes that
       # give the block access to all of the inputs from the request.
@@ -58,6 +60,15 @@ module GenericApiRails
       def authorize_with(&blk)
         @authorize_with = blk if blk
         @authorize_with
+      end
+
+      # transform_error_with allows you to be more specific with
+      # how API errors are displayed to the user, by default just the
+      # description is sent to the user with an HTTP status code.
+
+      def transform_error_with(&blk)
+        @transform_error_with = blk if blk
+        @transform_error_with || DEFAULT_ERROR_TRANSFORM
       end
       
       # Enable facebook-based API authentication in the app (requires
