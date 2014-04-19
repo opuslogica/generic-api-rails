@@ -6,7 +6,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   def done
     render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return false unless @credential
     
-    @api_token = ApiToken.find_or_create_by(credential_id: @credential.id) if @credential
+    @api_token = ApiToken.find_or_create_by(credential: @credential) if @credential
     
     if @credential and @api_token
       res = @credential.as_json(:only => [:id,:email])

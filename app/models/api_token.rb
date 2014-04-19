@@ -1,5 +1,5 @@
 class ApiToken < ActiveRecord::Base
-  belongs_to :credential
+  belongs_to :credential, polymorphic: true
   before_save :create_token_if_necessary
   delegate :person, to: :credential
 
@@ -13,12 +13,6 @@ class ApiToken < ActiveRecord::Base
 
   def admin_object_name
     token
-  end
-
-  def self.authenticate_oauth(hash)
-    credential = Credential.authenticate_oauth(hash)
-
-    done(credential)
   end
 
 end
