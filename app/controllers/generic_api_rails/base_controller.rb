@@ -35,16 +35,42 @@ module GenericApiRails
       @params = params
       @request = request
 
-      # begin
-        @authenticated = instance_eval(&GenericApiRails.config.authenticate_with)
-      # rescue => e
-      #  render :json =>  { :error => "Error authenticating." } , :status => 403 and return false
-      # end
+      incoming_token = params[:api_token] || request.headers['api-token']
+
+      api_token = ApiToken.find_by_token(incoming_token)
+      credential = api_token.credential if api_token
+      token = api_token.token if api_token
+      
+      if api_token and not token
+        api_token.delete if api_token
+        raise ApiError.find(ApiError::INVALID_API_TOKEN)
+      end
+      
+      @authenticated = credential
+
+      s = GenericApiRails.config.session_authentication_method
+      send(s) if s
       
       @action = params[:action]
       @controller = params[:controller]
       
       @arguments = params.reject { |k,v| %w(api_token api-token controller action id ids api quick shallow created_at updated_at).include?(k) }
+    end
+
+    def render_error(error_code,extra_hash_members={})
+      apierr = ApiError.find_by_code(error_code)
+      
+      errhash = { :error => apierr.as_json({}) }.merge(extra_hash_members)
+      
+      errhash = GenericApiRails.config.transform_error_with.call(errhash)
+
+      logger.info "ERRHASH #{errhash}"
+      render_result(errhash,apierr.status_code)
+    end
+
+    def render_result(hash={:error => "unknown error!"},status=200)
+      logger.info "RENDER RESULT #{hash},#{status}"
+      render :json => hash.as_json({}), :status => status
     end
 
   end

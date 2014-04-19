@@ -1,11 +1,13 @@
-class CreateApiTokens < ActiveRecord::Migration
+class CreateApiErrors < ActiveRecord::Migration
   def change
-    create_table :api_tokens do |t|
-      t.references :person, index: true
-      t.references :credential, index: true
-      t.string :token
+    create_table :api_errors do |t|
+      t.integer :code
+      t.string :description
+      t.integer :status_code
 
       t.timestamps
     end
+
+    ApiError.make_standard_errors
   end
 end

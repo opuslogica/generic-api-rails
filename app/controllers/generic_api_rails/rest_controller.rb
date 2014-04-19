@@ -1,28 +1,21 @@
 module GenericApiRails
   class RestController < BaseController
     before_filter :model
-
+    
     def model
       @model ||= params[:model].singularize.camelize.constantize
     end
 
-    rescue_from NotAuthorizedError do |e|
-      render :json => { :error => "Not authorized" } , :status => 403
-    end
-
-    def authorize! resource
-      auth_with = GenericApiRails.config.authorize_with
-
-      unless auth_with.call(@authorized,params[:action].to_sym,resource)
-        raise NotAuthorizedError
-      end
+    def authorized? action,resource
+      GenericApiRails.config.authorize_with.call(@authorized,action,resource)
     end
 
     def id_list
       ids = params[:ids].split ','
       r = model.where(:id => ids)
       
-      authorize! :read , r
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :read , r
+
       render :json => r
     end
     
@@ -39,13 +32,14 @@ module GenericApiRails
         
         if do_search
           r = model.where(search_hash)
+          render_error(ApiError:UNAUTHORIZED) and return false unless authorized? :read , r
+
         else
+          render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :index , model
           r = model.all
         end
         
         r = r.limit(1000)
-
-        authorize! r
 
         render :json => r
       end
@@ -53,7 +47,9 @@ module GenericApiRails
 
     def read
       @resource = @model.find(params[:id])
-      authorize! @resource
+
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :read , @resource
+
       render :json => @resource
     end
 
@@ -62,7 +58,9 @@ module GenericApiRails
 
       r = model.new()
       r.update_attributes(hash)
-      authorize! r
+
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :create , r
+
       r.save
 
       render :json => r
@@ -73,7 +71,9 @@ module GenericApiRails
 
       r = model.find(params[:id])
       r.update_attributes(hash)
-      authorize! r
+
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :update , r
+
       r.save
 
       render :json => r
@@ -81,7 +81,9 @@ module GenericApiRails
 
     def destroy
       r = model.find(params[:id])
-      authorize! r
+
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :destroy , r
+
       r.destroy!
       
       render :json => { success: true }

@@ -4,7 +4,8 @@ class ApiError < ActiveRecord::Base
   INVALID_USERNAME_OR_PASSWORD = 17
   INVALID_API_TOKEN            = 18
   INVALID_PERSON_ID            = 20
-  
+  UNAUTHORIZED                 = 100
+
   STANDARD_ERRORS =
     [
      { :code => INVALID_ARGUMENT, :description => "Invalid argument", :status_code => 403 },
@@ -12,6 +13,7 @@ class ApiError < ActiveRecord::Base
      { :code => INVALID_API_TOKEN, :description => "Invalid API token", :status_code => 403 },
      { :code => INVALID_USERNAME_OR_PASSWORD, :description => "Invalid username or password", :status_code => 403 },
      { :code => INVALID_PERSON_ID, :description => "Invalid person id", :status_code => 403 },
+     { :code => UNAUTHORIZED, :description => "Unauthorized for this action", :status_code => 403 },
     ]
 
   def self.make_standard_errors

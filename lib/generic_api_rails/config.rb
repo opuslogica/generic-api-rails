@@ -3,26 +3,22 @@ module GenericApiRails
     DEFAULT_ERROR_TRANSFORM = proc { |hash| hash }
 
     class << self
-      # authenticate_with receives a @params and @request hashes that
-      # give the block access to all of the inputs from the request.
-      # It must sort out api tokens, etc (for every API call), and
-      # return an "authenticated" object, which will be used later to
-      # check for permissions and do on.  The exact object type/etc is
-      # irrelevant to the API server, and is only used to ask
-      # questions later about whether or not the current API caller is
-      # authorized to perform some action (including read) a resource.
-      def authenticate_with(&blk)
-        @authenticate_with = blk if blk
-        @authenticate_with
+      # session_authentication_method specifies what controller action
+      # GenercApiRails should use to process/activate session-based
+      # authentication.  Whatever method specified (as a symbol) must
+      # be defined on ApplicationController (or monkey-patched into
+      # GenericApiRails::BaseController) and must return an object
+      # that represents the authenticated user.
+      def session_authentication_method(sym=nil)
+        @session_authentication_method = sym if sym
+        @session_authentication_method
       end
-      
-      # login_with takes the same @params and @request hash that
-      # authenticate_with does, but only is called once per session,
-      # to give the user some way to authenticate for later api calls.
-      # Whatever it returns is directly returned as a JSON blob to the
-      # client.  Make sure that the client knows how to turn whatever
-      # is returned by this into something that is readable by
-      # authenticate_with!
+
+      # login_with takes a block that accepts two arguments, username
+      # and password, which the caller should use to authenticate the
+      # user.  If the user is authenticated, return an object
+      # indicating this.  It will be stored along with the API token
+      # for later use.
       def login_with(&blk)
         @login_with = blk if blk
         @login_with

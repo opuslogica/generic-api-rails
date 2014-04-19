@@ -3,6 +3,21 @@ require 'open-uri'
 class GenericApiRails::AuthenticationController < GenericApiRails::BaseController
   skip_before_filter :api_setup
 
+  def done
+    render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return false unless @credential
+    
+    @api_token = ApiToken.find_or_create_by(credential_id: @credential.id) if @credential
+    
+    if @credential and @api_token
+      res = @credential.as_json(:only => [:id,:email])
+      res = res.merge(@api_token.as_json(:only => [:token]))
+    else
+      raise "failed to create api token? should be impossible..."
+    end
+    
+    render_result(res)
+  end
+
   def facebook
     # By default, client-side authentication gives you a short-lived
     # token:
@@ -47,20 +62,46 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     @uid = uid
     @email = fb_user[:email]
 
-    render :json => instance_eval(&GenericApiRails.config.oauth_with)
+    @credential = GenericApiRails.config.oauth_with.call(provider: 'facebook', uid: uid, email: fb_user[:email])
+
+    done
   end
 
   def login
-    @params = params
-    @request = request
-    
-    render :json => instance_eval(&GenericApiRails.config.login_with)
+    username = params[:username] || params[:email] || params[:login]
+    incoming_api_token = params[:api_token] || request.headers['api-token']
+
+    password = params[:password]
+    credential = nil
+
+    api_token = nil
+
+    logger.info "INCOMING API TOKEN '#{incoming_api_token.presence}'"
+
+    if incoming_api_token.presence and not username and not password
+      api_token = ApiToken.find_by_token(incoming_api_token) rescue nil
+      credential = api_token.credential if api_token
+      (api_token.destroy and api_token = nil) if not credential
+    end
+
+    if not api_token
+      if username.blank? or password.blank?
+        render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return
+      else
+        @credential = GenericApiRails.config.login_with.call(username,password)
+      end
+    end
+
+    logger.info "Credentials #{ credential }"
+    done
   end
 
   def signup
-    @params = params
-    @request = request
+    username = params[:username] || params[:login] || params[:email]
+    password = params[:password]
 
-    render :json => instance_eval(&GenericApiRails.config.signup_with)
+    @credential = GenericApiRails.config.signup_with.call(username,password)
+    
+    done
   end
 end
