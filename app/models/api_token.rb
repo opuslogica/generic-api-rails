@@ -1,7 +1,7 @@
 class ApiToken < ActiveRecord::Base
   belongs_to :credential, polymorphic: true
   before_save :create_token_if_necessary
-  delegate :person, to: :credential
+  delegate :person, to: :credential, :allow_nil => true
 
   def make_token
     SecureRandom.uuid
