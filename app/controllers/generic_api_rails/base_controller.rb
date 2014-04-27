@@ -65,12 +65,12 @@ module GenericApiRails
       
       errhash = GenericApiRails.config.transform_error_with.call(errhash)
 
-      logger.info "ERRHASH #{errhash}"
-      render_result(errhash,apierr.status_code)
+      # logger.info "ERRHASH #{errhash}"
+      render_result(errhash, apierr.status_code)
     end
 
-    def render_result(hash={:error => "unknown error!"},status=200)
-      logger.info "RENDER RESULT #{hash},#{status}"
+    def render_result(hash={:error => "unknown error!"}, status=200)
+      # logger.info "RENDER RESULT #{hash},#{status}"
       render :json => hash.as_json({}), :status => status
     end
 
