@@ -15,7 +15,7 @@ module GenericApiRails
       response.headers['Access-Control-Allow-Credentials'] = 'true'
       response.headers['Access-Control-Allow-Methods'] = 'GET, PUT, POST, DELETE, OPTIONS, PATCH'
       response.headers['Access-Control-Max-Age'] = "1728000"
-      response.headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token, bzu-client-id'
+      response.headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token'
     end
 
     # If this is a preflight OPTIONS request, then short-circuit the
@@ -25,7 +25,7 @@ module GenericApiRails
       if request.method == "OPTIONS"
         headers['Access-Control-Allow-Origin'] = '*'
         headers['Access-Control-Allow-Methods'] = 'GET, PUT, POST, DELETE, OPTIONS, PATCH'
-        headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token, bzu-client-id'
+        headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token'
         headers['Access-Control-Max-Age'] = '1728000'
         render :text => '', :content_type => 'text/plain'
       end
