@@ -1,12 +1,11 @@
 module GenericApiRails
   class MiscController < BaseController
     def version
-      render :json => { version: "1" }
+      render json: { version: "1.0" }
     end
 
     def whoami
-      render :json => @authenticated.as_json if @authenticated
-      render :json => { error: "Nobody!" } if not @authenticated
+      render json: (@authenticated ? @authenticated : { error: "Nobody!" })
     end
   end
 end
