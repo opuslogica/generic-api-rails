@@ -1,4 +1,5 @@
 require 'open-uri'
+require 'koala'
 
 class GenericApiRails::AuthenticationController < GenericApiRails::BaseController
   skip_before_filter :api_setup
@@ -50,11 +51,12 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # don't want to be using OAuth here - we already have the token we
     # need.
 
-    @graph = Koala::Facebook::API.new(long_lived_token, APP_SECRET)
-    fb_user = @graph.get_object('me')
+    @graph = ::Koala::Facebook::API.new(long_lived_token, app_secret)
+    fb_user = @graph.get_object('me',:fields=>"email,first_name,last_name,middle_name,birthday")
 
     uid = fb_user['id']
-    
+    profile_pic = @graph.get_picture(uid,{ :height => 500 , :width => 500 })
+
     # create a hash that matches what oauth spits out, but we've done
     # it with Koala:
     
@@ -62,7 +64,9 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     @uid = uid
     @email = fb_user[:email]
 
-    @credential = GenericApiRails.config.oauth_with.call(provider: 'facebook', uid: uid, email: fb_user[:email])
+    person_hash = { fname: fb_user['first_name'], lname: fb_user['last_name'], minitial: fb_user['middle_name'], profile_picture_uri: profile_pic , :birthdate => fb_user['birthday']}
+
+    @credential = GenericApiRails.config.oauth_with.call(provider: 'facebook', uid: uid, email: fb_user[:email] , person: person_hash)
 
     done
   end
@@ -100,7 +104,10 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
-    @credential = GenericApiRails.config.signup_with.call(username,password)
+    fname = params[:fname]
+    lname = params[:lname]
+
+    @credential = GenericApiRails.config.signup_with.call(username,password,{ fname: fname , lname: lname })
     
     done
   end
