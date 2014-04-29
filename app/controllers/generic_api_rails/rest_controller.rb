@@ -1,7 +1,8 @@
 module GenericApiRails
   class RestController < BaseController
     before_filter :model
-    
+    skip_before_filter :verify_authenticity_token
+
     def model
       @model ||= params[:model].singularize.camelize.constantize
     end
@@ -54,10 +55,13 @@ module GenericApiRails
     end
 
     def create
-      hash = params[model.table_name.singularize]
+      hash = params['rest']
 
       r = model.new()
-      r.update_attributes(hash)
+
+      # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
+
+      r.update_attributes(hash.to_hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized? :create , r
 
@@ -67,7 +71,7 @@ module GenericApiRails
     end
 
     def update
-      hash = params[model.table_name.singularize]
+      hash = params['rest']
 
       r = model.find(params[:id])
       r.update_attributes(hash)
