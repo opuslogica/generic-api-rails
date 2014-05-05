@@ -4,7 +4,14 @@ module GenericApiRails
     skip_before_filter :verify_authenticity_token
 
     def model
-      @model ||= params[:model].singularize.camelize.constantize
+      namespace ||= params[:namespace].camelize if params.has_key? :namespace
+      model_name ||= params[:model].singularize.camelize
+      if namespace
+        qualified_name = "#{namespace}::#{model_name}" 
+      else
+        qualified_name = model_name
+      end
+      @model = qualified_name.constantize
     end
 
     def authorized?(action, resource)
@@ -73,7 +80,7 @@ module GenericApiRails
     def update
       hash = params['rest']
 
-      r = model.find(params[:id])
+      r = @model.find(params[:id])
       r.update_attributes(hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:update, r)

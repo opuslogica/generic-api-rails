@@ -14,10 +14,10 @@ GenericApiRails::Engine.routes.draw do
     get 'version' => 'misc#version'
     get 'whoami' => 'misc#whoami'
 
-    get ':model' => 'rest#index'
-    get ':model/:id' => 'rest#read'
-    post ':model' => 'rest#create'
-    match ':model/:id' => 'rest#update' , :via => [:post,:put,:patch]
-    delete ':model/:id' => 'rest#destroy'
+    get '(:namespace/):model/:id' => 'rest#read',:constraints => { :id => /\d+/  , :model => /\D+/ }
+    match '(:namespace/):model/:id' => 'rest#update' , :via => [:post,:put,:patch],:constraints => { :id => /\d+/ , :model => /\D+/ }
+    delete '(:namespace/):model/:id' => 'rest#destroy',:constraints => { :id => /\d+/  , :model => /\D+/}
+    get '(:namespace/):model' => 'rest#index', :constraints => { :id => /\d+/ , :model => /\D+/} 
+    post '(:namespace/):model' => 'rest#create',:constraints => { :id => /\d+/ , :model => /\D+/}
   end
 end
