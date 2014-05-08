@@ -66,6 +66,26 @@ module GenericApiRails
         @transform_error_with = blk if blk
         @transform_error_with || DEFAULT_ERROR_TRANSFORM
       end
+
+      # Here are some pieces of configuration that allow for the
+      # definition of special-case search terms.  Using these, you can
+      # specify an API route like:
+      #
+      # /api/widgets?wodget_ids=8,6,2
+      #
+      # using the call:
+      #
+      # config.define_search_for Widget , :wodget_ids do |wodget_ids|
+      #   Widget.search_using_wodgets(Wodget.where(:id => wodget_ids.split(',')))
+      # end
+      def search_for(model,symbol,&blk)
+        @search_helpers ||= Hash.new
+        model_specific = @search_helpers[model.to_s] ||= Hash.new
+
+        model_specific[symbol] = blk if blk
+
+        model_specific[symbol]
+      end
       
       # Enable facebook-based API authentication in the app (requires
       # :app_id and :app_secret):

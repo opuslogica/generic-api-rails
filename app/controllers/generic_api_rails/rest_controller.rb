@@ -33,21 +33,38 @@ module GenericApiRails
       else
         search_hash = {}
         do_search = false
-        model.columns.each do |c|
-          name = c.name
-          search_hash[name.to_sym] = params[name] and do_search=true if params[name]
+        special_handler = false
+
+        r = nil
+
+        params.each do |key,value|
+          unless special_handler
+            special_handler ||= GenericApiRails.config.search_for(@model , key)
+            if special_handler
+              puts "Calling special handler #{key} with #{value}"
+              r = special_handler.call(value)
+            end
+          end
+        end
+
+        unless special_handler
+          model.columns.each do |c|
+            name = c.name
+            search_hash[name.to_sym] = params[name] and do_search=true if params[name]
+          end
         end
         
         if do_search
           r = model.where(search_hash)
           render_error(ApiError:UNAUTHORIZED) and return false unless authorized?(:read, r)
-
+        elsif special_handler
+          render_error(ApiError:UNAUTHORIZED) and return false unless authorized?(:read, r)
         else
           render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:index, model)
           r = model.all
         end
         
-        r = r.limit(1000)
+        r = r.limit(1000) if r.respond_to? :limit
 
         render :json => r
       end
