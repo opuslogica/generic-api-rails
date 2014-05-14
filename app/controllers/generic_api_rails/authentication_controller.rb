@@ -62,11 +62,12 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     
     @provider = 'facebook'
     @uid = uid
-    @email = fb_user[:email]
+
+    @email = fb_user['email']
 
     person_hash = { fname: fb_user['first_name'], lname: fb_user['last_name'], minitial: fb_user['middle_name'], profile_picture_uri: profile_pic , :birthdate => fb_user['birthday']}
 
-    @credential = GenericApiRails.config.oauth_with.call(provider: 'facebook', uid: uid, email: fb_user[:email] , person: person_hash)
+    @credential = GenericApiRails.config.oauth_with.call(provider: 'facebook', uid: uid, email: @email , person: person_hash)
 
     done
   end
