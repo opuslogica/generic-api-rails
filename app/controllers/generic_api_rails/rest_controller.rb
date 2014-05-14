@@ -3,6 +3,26 @@ module GenericApiRails
     before_filter :model
     skip_before_filter :verify_authenticity_token
 
+    def render_json(data)
+      render_one = lambda do |m|
+        include = m.class.reflect_on_all_associations.select do 
+          |a| a.macro == :has_and_belongs_to_many
+        end.map do |a|
+          h = {}
+          h[a.name] = { :only => [:id] }
+          h
+        end
+
+        m.as_json :include => include
+      end
+
+      if data.respond_to? :collect
+        render :json => (data.collect(&render_one))
+      else
+        render :json => render_one.call(data)
+      end
+    end
+
     def model
       namespace ||= params[:namespace].camelize if params.has_key? :namespace
       model_name ||= params[:model].singularize.camelize
@@ -24,7 +44,7 @@ module GenericApiRails
       
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, r)
 
-      render :json => r
+      render_json r
     end
     
     def index
@@ -66,7 +86,7 @@ module GenericApiRails
         
         r = r.limit(1000) if r.respond_to? :limit
 
-        render :json => r
+        render_json r
       end
     end
 
@@ -75,7 +95,7 @@ module GenericApiRails
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @resource)
 
-      render :json => @resource
+      render_json @resource
     end
 
     def create
@@ -91,7 +111,7 @@ module GenericApiRails
 
       r.save
 
-      render :json => r
+      render_json r
     end
 
     def update
@@ -104,7 +124,7 @@ module GenericApiRails
 
       r.save
 
-      render :json => r
+      render_json r
     end
 
     def destroy
