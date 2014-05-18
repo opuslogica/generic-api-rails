@@ -13,11 +13,23 @@ module GenericApiRails
           h
         end
 
-        m.as_json :include => include
-      end
+        h = { :model => m.as_json(:include => include) }
+        if m.errors.keys
+          h[:errors] = m.errors.messages
+        end
 
+        h
+      end
+      
       if data.respond_to? :collect
-        render :json => (data.collect(&render_one))
+        meta = {}
+        if data.respond_to? :count
+          meta[:total] = rows.count
+        end
+
+        meta[:rows] = (data.limit(100).collect(&render_one))
+
+        render :json => meta
       else
         render :json => render_one.call(data)
       end
@@ -84,7 +96,7 @@ module GenericApiRails
           r = model.all
         end
         
-        r = r.limit(1000) if r.respond_to? :limit
+#        r = r.limit(1000) if r.respond_to? :limit
 
         render_json r
       end
@@ -100,7 +112,7 @@ module GenericApiRails
 
     def create
       hash = params['rest']
-
+      puts "PARAMS "+params.to_s
       r = model.new()
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
@@ -108,9 +120,9 @@ module GenericApiRails
       r.assign_attributes(hash.to_hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:create, r)
-
       r.save
-
+      puts "R: ",r.attributes.to_s
+ 
       render_json r
     end
 
