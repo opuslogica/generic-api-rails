@@ -24,7 +24,7 @@ module GenericApiRails
       if data.respond_to? :collect
         meta = {}
         if data.respond_to? :count
-          meta[:total] = rows.count
+          meta[:total] = data.count
         end
 
         meta[:rows] = (data.limit(100).collect(&render_one))
