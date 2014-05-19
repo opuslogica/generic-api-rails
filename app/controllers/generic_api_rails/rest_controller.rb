@@ -47,7 +47,7 @@ module GenericApiRails
     end
 
     def authorized?(action, resource)
-      GenericApiRails.config.authorize_with.call(@authorized, action, resource)
+      GenericApiRails.config.authorize_with.call(@authenticated, action, resource)
     end
 
     def id_list
