@@ -27,7 +27,10 @@ module GenericApiRails
           meta[:total] = data.count
         end
 
-        meta[:rows] = (data.limit(100).collect(&render_one))
+        data = data.limit(@limit) if @limit
+        data = data.offset(@offset) if @offset
+
+        meta[:rows] = data.collect(&render_one)
 
         render :json => meta
       else
@@ -96,6 +99,8 @@ module GenericApiRails
           r = model.all
         end
         
+        @limit = params[:limit]
+        @offset = params[:offset]
 #        r = r.limit(1000) if r.respond_to? :limit
 
         render_json r
