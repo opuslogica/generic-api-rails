@@ -6,7 +6,7 @@ module GenericApiRails
     def render_json(data)
       render_one = lambda do |m|
         include = m.class.reflect_on_all_associations.select do 
-          |a| a.macro == :has_and_belongs_to_many
+          |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
         end.map do |a|
           h = {}
           h[a.name] = { :only => [:id] }
