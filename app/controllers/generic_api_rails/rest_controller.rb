@@ -77,7 +77,7 @@ module GenericApiRails
             special_handler ||= GenericApiRails.config.search_for(@model , key)
             if special_handler
               puts "Calling special handler #{key} with #{value}"
-              r = special_handler.call(value)
+              r = instance_exec value, &special_handler
             end
           end
         end
