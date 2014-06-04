@@ -101,7 +101,19 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     done
   end
 
+  def validate_signup_params params
+    errs = {}
+    errs[:fname] = "You must provide a first name" unless params[:fname].presence()
+    errs[:lname] = "You must provide a last name" unless params[:lname].presence()
+    errs[:username] = "You must provide a valid email" unless params[:username].presence()
+    errs[:password] = "You must provide a password of at least 4 characters" unless params[:password].presence() && params[:password].length >= 4
+    errs = nil if errs.keys.length == 0
+    errs
+  end
+
   def signup
+    errs = validate_signup_params params
+    render :json => { :errors => errs } and return if errs
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
