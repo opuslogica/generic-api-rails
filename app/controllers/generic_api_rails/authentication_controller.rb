@@ -30,7 +30,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     app_secret = fb_hash[:app_secret]
 
     # to upgrade it, hit this URI, and use the token it hands back:
-    token_upgrade_uri = "https://graph.facebook.com/oauth/access_token?client_id=#{app_id}&client_secret=#{app_secret}&grant_type=fb_exchange_token&fb_exchange_token=#{short_lived_token}"
+    token_upgrade_uri = "//graph.facebook.com/oauth/access_token?client_id=#{app_id}&client_secret=#{app_secret}&grant_type=fb_exchange_token&fb_exchange_token=#{short_lived_token}"
 
     begin
       res = URI.parse(token_upgrade_uri).read
