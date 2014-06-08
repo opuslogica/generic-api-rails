@@ -75,13 +75,14 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   def login
     username = params[:username] || params[:email] || params[:login]
     incoming_api_token = params[:api_token] || request.headers['api-token']
-
     password = params[:password]
+
+    username = username.downcase if username.present?
     @credential = nil
 
     api_token = nil
 
-    logger.info "INCOMING API TOKEN '#{incoming_api_token.presence}'"
+    logger.debug "INCOMING API TOKEN '#{incoming_api_token.presence}'"
 
     if incoming_api_token.presence and not password
       api_token = ApiToken.find_by_token(incoming_api_token) rescue nil
