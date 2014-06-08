@@ -5,10 +5,10 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   skip_before_filter :api_setup
 
   def done
-    render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return false unless @credential
+    render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential
     
-    @api_token = ApiToken.find_or_create_by(credential: @credential) if @credential
-    
+    @api_token = ApiToken.find_or_create_by(credential: @credential)
+
     if @credential and @api_token
       res = @credential.as_json(:only => [:email, :member_id, :person_id])
       res = res.merge(@api_token.as_json(:only => [:token]))
@@ -52,40 +52,43 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # need.
 
     @graph = ::Koala::Facebook::API.new(long_lived_token, app_secret)
-    fb_user = @graph.get_object('me',:fields=>"email,first_name,last_name,middle_name,birthday")
+    fb_user = @graph.get_object("me", fields: "email,first_name,last_name,middle_name,birthday")
 
-    uid = fb_user['id']
+    uid = fb_user["id"]
     profile_pic = @graph.get_picture(uid,{ :height => 500 , :width => 500 })
 
     # create a hash that matches what oauth spits out, but we've done
     # it with Koala:
-    
-    @provider = 'facebook'
+    @provider = "facebook"
     @uid = uid
+    @email = fb_user["email"]
 
-    @email = fb_user['email']
+    person_hash = {
+      fname: fb_user["first_name"],
+      lname: fb_user["last_name"],
+      minitial: fb_user["middle_name"],
+      profile_picture_uri: profile_pic,
+      birthdate: fb_user["birthday"]
+    }
 
-    person_hash = { fname: fb_user['first_name'], lname: fb_user['last_name'], minitial: fb_user['middle_name'], profile_picture_uri: profile_pic , :birthdate => fb_user['birthday']}
-
-    @credential = GenericApiRails.config.oauth_with.call(provider: 'facebook', uid: uid, email: @email , person: person_hash)
+    @credential = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash)
 
     done
   end
 
   def login
     username = params[:username] || params[:email] || params[:login]
-    incoming_api_token = params[:api_token] || request.headers['api-token']
+    incoming_api_token = params[:api_token] || request.headers["api-token"]
     password = params[:password]
 
     username = username.downcase if username.present?
     @credential = nil
-
     api_token = nil
 
-    logger.debug "INCOMING API TOKEN '#{incoming_api_token.presence}'"
+    logger.debug("INCOMING API TOKEN '#{incoming_api_token.presence}'")
 
-    if incoming_api_token.presence and not password
-      api_token = ApiToken.find_by_token(incoming_api_token) rescue nil
+    if incoming_api_token.present? and not password
+      api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
       @credential = api_token.credential if api_token
       (api_token.destroy and api_token = nil) if (not @credential) or (@credential.email.address != username)
     end
@@ -94,20 +97,20 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       if username.blank? or password.blank?
         render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return
       else
-        @credential = GenericApiRails.config.login_with.call(username,password)
+        @credential = GenericApiRails.config.login_with.call(username, password)
       end
     end
 
-    logger.info "Credentials #{ @credential }"
+    logger.debug("Credentials #{ @credential }")
     done
   end
 
   def validate_signup_params params
     errs = {}
-    errs[:fname] = "You must provide a first name" unless params[:fname].presence()
-    errs[:lname] = "You must provide a last name" unless params[:lname].presence()
-    errs[:username] = "You must provide a valid email" unless params[:username].presence()
-    errs[:password] = "You must provide a password of at least 4 characters" unless params[:password].presence() && params[:password].length >= 4
+    errs[:fname] = "You must provide a first name" unless params[:fname].present?
+    errs[:lname] = "You must provide a last name" unless params[:lname].present?
+    errs[:username] = "You must provide a valid email" unless params[:username].present?
+    errs[:password] = "You must provide a password of at least 4 characters" unless params[:password].present? && params[:password].length >= 4
     errs = nil if errs.keys.length == 0
     errs
   end
@@ -121,7 +124,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     fname = params[:fname]
     lname = params[:lname]
 
-    @credential = GenericApiRails.config.signup_with.call(username,password,{ fname: fname , lname: lname })
+    @credential = GenericApiRails.config.signup_with.call(username, password,{ fname: fname, lname: lname })
     done
   end
 end
