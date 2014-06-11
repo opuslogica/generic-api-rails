@@ -54,8 +54,7 @@ module GenericApiRails
       
       @action = params[:action]
       @controller = params[:controller]
-      
-      @arguments = params.reject { |k,v| %w(api_token api-token controller action id ids api quick shallow created_at updated_at).include?(k) }
+      @arguments = params[:rest]
     end
 
     def render_error(error_code,extra_hash_members={})
