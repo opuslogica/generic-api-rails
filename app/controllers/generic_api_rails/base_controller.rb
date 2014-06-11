@@ -57,7 +57,7 @@ module GenericApiRails
       @arguments = params[:rest]
     end
 
-    def render_error(error_code,extra_hash_members={})
+    def render_error(error_code, extra_hash_members={})
       apierr = ApiError.find_by_code(error_code)
       
       errhash = { :error => apierr.as_json({}) }.merge(extra_hash_members)
@@ -69,7 +69,6 @@ module GenericApiRails
     end
 
     def render_result(hash={:error => "unknown error!"}, status=200)
-      # logger.info "RENDER RESULT #{hash},#{status}"
       render :json => hash.as_json({}), :status => status
     end
 
