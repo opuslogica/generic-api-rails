@@ -35,11 +35,11 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     begin
       res = URI.parse(token_upgrade_uri).read
 
-      res_hash = Rack::Utils.parse_query res
-    
+      res_hash = Rack::Utils.parse_query(res)
+
       long_lived_token = res_hash['access_token']
     rescue Exception => x
-      logger.error(x)
+      logger.error(self.class.name + " - facebook: #{x}")
       render :json => { :error => "token-upgrade error (#{x})" }
       return
     end
@@ -53,10 +53,10 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # need.
 
     @graph = ::Koala::Facebook::API.new(long_lived_token, app_secret)
-    fb_user = @graph.get_object("me", fields: "email,first_name,last_name,middle_name,birthday")
-
+    fb_user = @graph.get_object("me", fields: "email,first_name,last_name,middle_name,birthday,about,location")
+    # logger.info("FB_USER: #{fb_user}")
     uid = fb_user["id"]
-    profile_pic = @graph.get_picture(uid,{ :height => 500 , :width => 500 })
+    profile_pic = @graph.get_picture(uid, { height: 500, width: 500 })
 
     # create a hash that matches what oauth spits out, but we've done
     # it with Koala:
