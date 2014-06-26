@@ -125,7 +125,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     fname = params[:fname]
     lname = params[:lname]
 
-    @credential = GenericApiRails.config.signup_with.call(username, password,{ fname: fname, lname: lname })
+    @credential = GenericApiRails.config.signup_with.call(username, password, { fname: fname, lname: lname })
     done
   end
 end

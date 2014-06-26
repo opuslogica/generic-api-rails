@@ -153,7 +153,7 @@ module GenericApiRails
       @instance = model.find(params[:id])
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
-
+      
       @instance.destroy!
       
       render :json => { success: true }
