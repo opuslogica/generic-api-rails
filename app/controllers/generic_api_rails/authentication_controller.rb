@@ -90,8 +90,10 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     if incoming_api_token.present? and not password
       api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
-      @credential = api_token.credential if api_token
-      (api_token.destroy and api_token = nil) if (not @credential) or (username && @credential.email.address != username)
+      if api_token
+        @credential = api_token.credential 
+        (api_token.destroy and api_token = nil) if (not @credential) or (username && @credential.email.address != username)
+      end
     end
 
     if not api_token
