@@ -14,7 +14,7 @@ module GenericApiRails
           h
         end
 
-        h = { :model => m.as_json(:include => include) }
+        h = { :model => m.as_json(:for_member => (@authenticated.member rescue nil), :include => include) }
         if m.errors.keys
           h[:errors] = m.errors.messages
         end
