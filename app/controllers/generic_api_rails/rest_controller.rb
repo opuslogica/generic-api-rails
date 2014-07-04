@@ -14,7 +14,7 @@ module GenericApiRails
           h
         end
 
-        h = { :model => m.as_json(:include => include) }
+        h = { :model => m.as_json(:for_member => (@authenticated.member rescue nil), :include => include) }
         if m.errors.keys
           h[:errors] = m.errors.messages
         end
@@ -153,7 +153,7 @@ module GenericApiRails
       @instance = model.find(params[:id])
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
-
+      
       @instance.destroy!
       
       render :json => { success: true }
