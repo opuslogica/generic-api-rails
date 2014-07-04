@@ -115,11 +115,11 @@ module GenericApiRails
     end
 
     def read
-      @resource = @model.find(params[:id])
+      @instance = @model.find(params[:id])
 
-      render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @resource)
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instance)
 
-      render_json @resource
+      render_json @instance
     end
 
     def create
