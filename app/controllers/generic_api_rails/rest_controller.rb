@@ -140,7 +140,7 @@ module GenericApiRails
       hash = params[:rest]
 
       @instance = @model.find(params[:id])
-      @instance.assign_attributes(hash.to_hash)
+      @instance.assign_attributes(hash.to_hash.with_indifferent_access)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:update, @instance)
 
