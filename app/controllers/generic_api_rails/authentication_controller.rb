@@ -131,8 +131,14 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
-    fname = params[:fname]
-    lname = params[:lname]
+    if not params.has_key?(:fname) and not params.has_key?(:lname) and params.has_key?(:name)
+      components = params[:name].split(" ") rescue [params[:name]]
+      fname = components.shift
+      lname = components.join
+    else
+      fname = params[:fname]
+      lname = params[:lname]
+    end
 
     @credential = GenericApiRails.config.signup_with.call(username, password, { fname: fname, lname: lname })
     done
