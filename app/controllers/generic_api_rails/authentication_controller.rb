@@ -110,7 +110,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
   def validate_signup_params(params)
     errs = {}
-    if not params[:fname] and not params[:lname]
+    if not params[:fname] and not params[:lname] and not params[:name]
       errs[:fname] = "You must provide at least one name"
     end
 
