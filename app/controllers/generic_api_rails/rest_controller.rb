@@ -12,8 +12,12 @@ module GenericApiRails
           h = {}
           h[a.name] = { :only => [:id] }
           h
-        end
-
+        end.inject({}) do |a,b|
+          a.merge b
+        end 
+        logger.info include
+        include = include.merge @include if @include
+        
         h = { :model => m.as_json(:for_member => (@authenticated.member rescue nil), :include => include) }
         if m.errors.keys
           h[:errors] = m.errors.messages
@@ -108,6 +112,7 @@ module GenericApiRails
         
         @limit = params[:limit]
         @offset = params[:offset]
+        @include = JSON.parse(params[:include]) rescue {}
 #        @instances = r.limit(1000) if @instances.respond_to? :limit
 
         render_json @instances
@@ -116,6 +121,7 @@ module GenericApiRails
 
     def read
       @instance = @model.find(params[:id])
+      @include = JSON.parse(params[:include]) rescue {}
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instance)
 
