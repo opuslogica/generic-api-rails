@@ -85,7 +85,7 @@ module GenericApiRails
 
         params.each do |key,value|
           unless special_handler
-            special_handler ||= GenericApiRails.config.search_for(@model, key)
+            special_handler ||= GenericApiRails.config.search_for(@model, key.to_sym)
             if special_handler
               puts "Calling special handler #{key} with #{value}"
               @instances = instance_exec(value, &special_handler)
@@ -113,7 +113,6 @@ module GenericApiRails
         @limit = params[:limit]
         @offset = params[:offset]
         @include = JSON.parse(params[:include]) rescue {}
-#        @instances = r.limit(1000) if @instances.respond_to? :limit
 
         render_json @instances
       end
