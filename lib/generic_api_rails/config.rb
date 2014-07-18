@@ -75,10 +75,10 @@ module GenericApiRails
       #
       # using the call:
       #
-      # config.define_search_for Widget , :wodget_ids do |wodget_ids|
+      # config.define_search_for Widget, :wodget_ids do |wodget_ids|
       #   Widget.search_using_wodgets(Wodget.where(:id => wodget_ids.split(',')))
       # end
-      def search_for(model,symbol,&blk)
+      def search_for(model, symbol, &blk)
         @search_helpers ||= Hash.new
         model_specific = @search_helpers[model.to_s] ||= Hash.new
 
