@@ -104,7 +104,7 @@ module GenericApiRails
               do_search = true
             elsif /.*_id$/.match(key.to_s)
               # This is an ID column, but our model doesn't "belong_to" this thing. So,
-              # this thing must have-and-belong-to-many of our models, as in
+              # this thing must belong to us, whether through a join table or not.  Thus,
               #
               #       GET /api/addresses?person_id=12
               #
