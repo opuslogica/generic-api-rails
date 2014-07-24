@@ -74,6 +74,8 @@ module GenericApiRails
     end
     
     def index
+      query_begin = nil
+
       if params[:ids]
         id_list
       else
@@ -83,7 +85,7 @@ module GenericApiRails
 
         @instances = nil
 
-        params.each do |key,value|
+        params.each do |key, value|
           unless special_handler
             special_handler ||= GenericApiRails.config.search_for(@model, key)
             special_handler ||= GenericApiRails.config.search_for(@model, key.to_sym)
@@ -95,20 +97,40 @@ module GenericApiRails
         end
 
         unless special_handler
-          model.columns.each do |c|
-            name = c.name
-            search_hash[name.to_sym] = params[name] and do_search=true if params[name]
+          column_syms = model.columns.collect {|c| c.name.to_sym}
+          params.each do |key, val|
+            if column_syms.include?(key.to_sym)
+              search_hash[key.to_sym] = val
+              do_search = true
+            elsif /.*_id$/.match(key.to_s)
+              # This is an ID column, but our model doesn't "belong_to" this thing. So,
+              # this thing must have-and-belong-to-many of our models, as in
+              #
+              #       GET /api/addresses?person_id=12
+              #
+              # means, Person.find(12).addressess...
+              # 
+              other_model = (key.to_s.gsub(/_id$/, "").camelize.safe_constantize).new.class rescue nil
+              begin
+                query_begin = (other_model.find(val)).send(@model.name.tableize.to_sym) if other_model
+              rescue ActiveRecord::RecordNotFound
+                Rails.logger.info("GAR: Error finding the requested #{other_model.name}: #{val}")
+                render_error(ApiError::UNAUTHORIZED) and return false
+              end
+            end
           end
         end
-        
+
+        Rails.logger.info("QUERY_BEGIN: #{query_begin}")
+        query_begin ||= model
         if do_search
-          @instances = model.where(search_hash)
-          render_error(ApiError:UNAUTHORIZED) and return false unless authorized?(:read, @instances)
+          @instances = query_begin.where(search_hash)
+          render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
         elsif special_handler
-          render_error(ApiError:UNAUTHORIZED) and return false unless authorized?(:read, @instances)
+          render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
         else
           render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:index, model)
-          @instances = model.all
+          @instances = query_begin.all
         end
         
         @limit = params[:limit]
