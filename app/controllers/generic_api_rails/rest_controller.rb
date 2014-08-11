@@ -26,9 +26,11 @@ module GenericApiRails
         h
       end
       
-      if data.respond_to? :collect
+      data = data.offset(@offset) if @offset
+
+      if data.respond_to?(:collect)
         meta = {}
-        if data.respond_to? :count
+        if data.respond_to?(:count)
           meta[:total] = data.count
         end
 
