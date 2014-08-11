@@ -10,7 +10,7 @@ module GenericApiRails
           |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
         end.map do |a|
           h = {}
-          h[a.name] = { :only => [:id] }
+          h[a.name] = { only: [:id] }
           h
         end.inject({}) do |a,b|
           a.merge b
@@ -18,7 +18,7 @@ module GenericApiRails
         logger.info include
         include = include.merge @include if @include
         
-        h = { :model => m.as_json(:for_member => (@authenticated.member rescue nil), :include => include) }
+        h = { model: m.as_json(for_member: (@authenticated.member rescue nil), include: include) }
         if m.errors.keys
           h[:errors] = m.errors.messages
         end
@@ -26,20 +26,16 @@ module GenericApiRails
         h
       end
       
-      if data.respond_to? :collect
+      if data.respond_to?(:collect)
         meta = {}
-        if data.respond_to? :count
-          meta[:total] = data.count
-        end
-
+        meta[:total] = data.count if data.respond_to?(:count)
         data = data.limit(@limit) if @limit
         data = data.offset(@offset) if @offset
 
         meta[:rows] = data.collect(&render_one)
-
-        render :json => meta
+        render json: meta
       else
-        render :json => render_one.call(data)
+        render json: render_one.call(data)
       end
     end
 
@@ -66,7 +62,7 @@ module GenericApiRails
 
     def id_list
       ids = params[:ids].split ','
-      @instances = model.where(:id => ids)
+      @instances = model.where(id: ids)
       
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
 
@@ -121,7 +117,6 @@ module GenericApiRails
           end
         end
 
-        Rails.logger.info("QUERY_BEGIN: #{query_begin}")
         query_begin ||= model
         if do_search
           @instances = query_begin.where(search_hash)
@@ -137,12 +132,12 @@ module GenericApiRails
         @offset = params[:offset]
         @include = JSON.parse(params[:include]) rescue {}
 
-        render_json @instances
+        render_json(@instances)
       end
     end
 
     def read
-      @instance = @model.find(params[:id])
+      @instance = @model.find(params[:id]) rescue nil
       @include = JSON.parse(params[:include]) rescue {}
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instance)
@@ -184,7 +179,7 @@ module GenericApiRails
       
       @instance.destroy!
       
-      render :json => { success: true }
+      render json: { success: true }
     end
   end
 end
