@@ -26,11 +26,15 @@ module GenericApiRails
         h
       end
       
+      data = data.offset(@offset) if @offset
+
       if data.respond_to?(:collect)
         meta = {}
-        meta[:total] = data.count if data.respond_to?(:count)
+        if data.respond_to?(:count)
+          meta[:total] = data.count
+        end
+
         data = data.limit(@limit) if @limit
-        data = data.offset(@offset) if @offset
 
         meta[:rows] = data.collect(&render_one)
         render json: meta
