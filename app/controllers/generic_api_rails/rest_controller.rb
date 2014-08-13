@@ -15,9 +15,9 @@ module GenericApiRails
         end.inject({}) do |a,b|
           a.merge b
         end 
-        logger.info include
+
         include = include.merge @include if @include
-        
+
         h = { model: m.as_json(for_member: (@authenticated.member rescue nil), include: include) }
         if m.errors.keys
           h[:errors] = m.errors.messages
