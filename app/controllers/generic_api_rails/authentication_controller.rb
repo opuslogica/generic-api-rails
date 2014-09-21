@@ -42,8 +42,9 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       long_lived_token = res_hash['access_token']
     rescue Exception => x
       logger.error(self.class.name + " - facebook: #{x}")
-      render :json => { :error => "token-upgrade error (#{x})" }
-      return
+      long_lived_token = short_lived_token
+      # render :json => { :error => "token-upgrade error (#{x})" }
+      # return
     end
 
     # at this point, we have verified that the credential is authorized by
