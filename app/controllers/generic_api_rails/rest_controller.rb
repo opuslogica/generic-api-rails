@@ -90,7 +90,7 @@ module GenericApiRails
             special_handler ||= GenericApiRails.config.search_for(@model, key)
             special_handler ||= GenericApiRails.config.search_for(@model, key.to_sym)
             if special_handler
-              Rails.logger.info("CALLING SPECIAL HANDLER #{@model}#{key.to_sym} with #{value}")
+              Rails.logger.info("CALLING SPECIAL HANDLER #{@model} :#{key.to_sym} with #{value}")
               @instances = instance_exec(value, &special_handler)
             end
           end
