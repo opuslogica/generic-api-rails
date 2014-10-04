@@ -165,6 +165,7 @@ module GenericApiRails
 
     def update
       hash = params[:rest]
+      hash ||= params
 
       @instance = @model.find(params[:id])
       @instance.assign_attributes(hash.to_hash.with_indifferent_access)
