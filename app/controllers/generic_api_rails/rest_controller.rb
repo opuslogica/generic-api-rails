@@ -164,12 +164,13 @@ module GenericApiRails
     end
 
     def update
+      @instance = @model.find(params[:id])
       hash = params[:rest]
       hash ||= params
       hash = hash.to_hash.with_indifferent_access
       hash.delete(:controller)
       hash.delete(:action)
-      @instance = @model.find(params[:id])
+      hash.delete(:id)
       @instance.assign_attributes(hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:update, @instance)
