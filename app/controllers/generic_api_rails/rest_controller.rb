@@ -170,6 +170,7 @@ module GenericApiRails
       hash = hash.to_hash.with_indifferent_access
       hash.delete(:controller)
       hash.delete(:action)
+      hash.delete(:model)
       hash.delete(:id)
       @instance.assign_attributes(hash)
 
