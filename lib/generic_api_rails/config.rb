@@ -77,7 +77,7 @@ module GenericApiRails
       #
       # using the call:
       #
-      # config.define_search_for Widget, :wodget_ids do |wodget_ids|
+      # config.search_for Widget, :wodget_ids do |wodget_ids|
       #   Widget.search_using_wodgets(Wodget.where(:id => wodget_ids.split(',')))
       # end
       def search_for(model, symbol, &blk)
