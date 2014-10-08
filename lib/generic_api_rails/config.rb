@@ -3,6 +3,8 @@ module GenericApiRails
     DEFAULT_ERROR_TRANSFORM = proc { |hash| hash }
 
     class << self
+      attr_accessor :simple_api
+
       # session_authentication_method specifies what controller action
       # GenercApiRails should use to process/activate session-based
       # authentication.  Whatever method specified (as a symbol) must
