@@ -151,6 +151,7 @@ module GenericApiRails
 
     def create
       hash = params[:rest]
+      hash ||= params
       @instance = model.new()
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
