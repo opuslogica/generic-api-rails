@@ -5,6 +5,9 @@ module GenericApiRails
     skip_before_filter :verify_authenticity_token
 
     def render_json(data)
+
+      simple = GenericApiRails.config.simple_api rescue nil
+
       render_one = lambda do |m|
         include = m.class.reflect_on_all_associations.select do 
           |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
@@ -18,15 +21,14 @@ module GenericApiRails
 
         include = include.merge @include if @include
 
-        h = { model: m.as_json(for_member: (@authenticated.member rescue nil), include: include) }
+        h = m.as_json(for_member: (@authenticated.member rescue nil), include: include)
+        h = { model: h } if not simple
         if m.errors.keys
           h[:errors] = m.errors.messages
         end
-
         h
       end
       
-
       if data.respond_to?(:collect)
         meta = {}
         if data.respond_to?(:count)
@@ -37,6 +39,7 @@ module GenericApiRails
         data = data.offset(@offset) if @offset
 
         meta[:rows] = data.collect(&render_one)
+        meta = meta[:rows] if simple
         render json: meta
       else
         render json: render_one.call(data)
