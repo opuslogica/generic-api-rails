@@ -161,7 +161,6 @@ module GenericApiRails
       hash.delete(:action)
       hash.delete(:model)
       hash.delete(:base)
-      hash.delete(:id)
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
