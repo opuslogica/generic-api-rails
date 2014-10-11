@@ -156,6 +156,13 @@ module GenericApiRails
       hash = params[:rest]
       hash ||= params
       @instance = model.new()
+
+      hash.delete(:controller)
+      hash.delete(:action)
+      hash.delete(:model)
+      hash.delete(:base)
+      hash.delete(:id)
+
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
       @instance.assign_attributes(hash.to_hash)
