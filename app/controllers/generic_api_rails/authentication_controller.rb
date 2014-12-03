@@ -12,7 +12,9 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # @api_token = ApiToken.find_or_create_by(credential_id: @credential.id, credential_type: @crendential.class.name)
 
     if @credential and @api_token
-      res = @credential.as_json(:only => [:email, :member_id, :person_id])
+      res = @credential.as_json
+      res[:email] = @credential.email.address
+      res[:person_id] = @credential.member.person.id
       res = res.merge(@api_token.as_json(:only => [:token]))
     else
       raise "failed to create api token? should be impossible..."
