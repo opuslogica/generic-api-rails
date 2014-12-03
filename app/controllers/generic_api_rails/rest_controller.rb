@@ -31,8 +31,14 @@ module GenericApiRails
       
       if data.respond_to?(:collect)
         meta = {}
-        if data.respond_to?(:count)
-          meta[:total] = data.count
+        begin
+          if data.respond_to?(:count)
+            meta[:total] = data.count
+          end
+        rescue
+          # Error occurred trying to get count, instead of stopping
+          # request, send down the total number in the request
+          meta[:total] = data.length
         end
 
         data = data.limit(@limit) if @limit
