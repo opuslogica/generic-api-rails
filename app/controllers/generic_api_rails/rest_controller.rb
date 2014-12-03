@@ -4,31 +4,32 @@ module GenericApiRails
     before_filter :model
     skip_before_filter :verify_authenticity_token
 
-    def render_json(data)
-
+    def render_one_json(m)
       simple = GenericApiRails.config.simple_api rescue nil
 
-      render_one = lambda do |m|
-        include = m.class.reflect_on_all_associations.select do 
-          |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
-        end.map do |a|
-          h = {}
-          h[a.name] = { only: [:id] }
-          h
-        end.inject({}) do |a,b|
-          a.merge b
-        end 
-
-        include = include.merge @include if @include
-
-        h = m.as_json(for_member: (@authenticated.member rescue nil), include: include)
-        h = { model: h } if not simple
-        if m.errors.keys
-          h[:errors] = m.errors.messages
-        end
+      include = m.class.reflect_on_all_associations.select do 
+        |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
+      end.map do |a|
+        h = {}
+        h[a.name] = { only: [:id] }
         h
+      end.inject({}) do |a,b|
+        a.merge b
+      end 
+
+      include = include.merge @include if @include
+
+      h = m.as_json(for_member: (@authenticated.member rescue nil), include: include)
+      h = { model: h } if not simple
+      if m.errors.keys
+        h[:errors] = m.errors.messages
       end
-      
+      h
+    end
+    
+    def render_json(data)
+      simple = GenericApiRails.config.simple_api rescue nil
+
       if data.respond_to?(:collect)
         meta = {}
         begin
@@ -44,11 +45,11 @@ module GenericApiRails
         data = data.limit(@limit) if @limit
         data = data.offset(@offset) if @offset
 
-        meta[:rows] = data.collect(&render_one)
+        meta[:rows] = data.collect { |m| render_one_json m }
         meta = meta[:rows] if simple
         render json: meta
       else
-        render json: render_one.call(data)
+        render json: render_one_json(data)
       end
     end
 
