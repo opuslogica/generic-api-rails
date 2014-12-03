@@ -50,6 +50,7 @@ module GenericApiRails
       @rest = params[:rest]
       @action = params[:action]
       @controller = self
+      @request = request
     end
 
     def model
