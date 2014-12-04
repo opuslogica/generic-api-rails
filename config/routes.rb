@@ -9,6 +9,8 @@ GenericApiRails::Engine.routes.draw do
       post 'login'
       get 'signup'
       post 'signup'
+      get 'logout'
+      post 'logout'
     end
 
     get    'version'                    => 'misc#version'

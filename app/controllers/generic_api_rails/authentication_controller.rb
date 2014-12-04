@@ -2,7 +2,7 @@ require 'open-uri'
 require 'koala'
 
 class GenericApiRails::AuthenticationController < GenericApiRails::BaseController
-  skip_before_filter :api_setup
+  skip_before_filter :api_setup, except: [:logout]
 
   def done
     render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential
@@ -151,5 +151,12 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     options[:lname] = lname
     @credential = GenericApiRails.config.signup_with.call(username, password, options)
     done
+  end
+  
+  def logout
+    render_error(ApiError::INVALID_API_TOKEN) and return unless @authenticated
+
+    @authenticated.destroy!
+    render :json => { status: "OK" }
   end
 end
