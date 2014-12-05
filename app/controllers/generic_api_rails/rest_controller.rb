@@ -6,6 +6,12 @@ module GenericApiRails
 
     def render_one_json(m)
       simple = GenericApiRails.config.simple_api rescue nil
+      
+      prefix = "generic_api_rails/#{ model.name.pluralize.downcase }"
+      template = "#{prefix}/item"
+      if !simple && self.template_exists?(template,[],true)
+        return JSON.parse(render_to_string(:partial => template , locals: { item: m }))
+      end
 
       include = m.class.reflect_on_all_associations.select do 
         |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
@@ -29,8 +35,23 @@ module GenericApiRails
     
     def render_json(data)
       simple = GenericApiRails.config.simple_api rescue nil
+      @collection = data
 
       if data.respond_to?(:collect)
+        if !simple
+          Rails.logger.info "Heeai"
+          # check for model-specific collection option:
+          if template_exists? "generic_api_rails/#{ @model.name.downcase.pluralize }/collection"
+            render "generic_api_rails/#{ @model.name.downcase.pluralize }/collection" && return
+          elsif template_exists?("generic_api_rails/#{ @model.name.downcase.pluralize }/item",[],true)
+            Rails.logger.info "Bizarre"
+            render "generic_api_rails/base/collection"
+            return
+          else
+            Rails.logger.info "WTRF"
+          end
+        end
+
         meta = {}
         begin
           if data.respond_to?(:count)
