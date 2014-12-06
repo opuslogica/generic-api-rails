@@ -1,17 +1,71 @@
+#
+# RestController - does all of the basic REST operations on any given
+# model.  Model-specific assignment behavior can be customized by
+# overriding the assign_attributes in that model.  View/JSON
+# customization can be done using the as_json function, but this
+# doesn't have the ideal level of flexibility.  For example, how would
+# one render a record with limited fields for collection views and
+# more comprehensive rows for individual retrieval?  This
+# customization is done using view-level rendering.  Here is the
+# process by which view paths/partials are selected:
+#
+# Collection-like requests:
+#  - multiple-row-requests (/api/people?ids=34,23,2)
+#    - renders /generic_api_rails/people/people with @people = [34,23,2] and @collection = false
+#      - by default will render /generic_api_rails/people/person , with person and @collection = false 
+#        for each row
+#  - collection requests (/api/people?group_id=18)
+#    - renders /generic_api_rails/people/people with @people = [...] and @collection = true
+#      - by default will render /generic_api_rails/people/_person with person and @collection = true
+#
+# Single-row requests:
+#  - render /generic_api_rails/people/person with person and @collection = false
+#    - by default will render /generic_api_rails/people/_person with person and @collection = false;
+# 
+
 module GenericApiRails
+  GAR = "generic_api_rails"
+
   class RestController < BaseController
     before_filter :setup
     before_filter :model
     skip_before_filter :verify_authenticity_token
 
+    def render_many rows,is_collection
+      @is_collection = is_collection
+      Rails.logger.info "Rendering many..."
+
+      if template_exists?(tmpl="#{GAR}/#{ @model.name.downcase.pluralize }/#{ @model.name.downcase.pluralize }")
+        locals = {}
+        locals[@model.name.downcase.pluralize.to_sym] = rows
+        render tmpl, locals: locals
+        true
+      elsif template_exists?(tmpl="#{GAR}/base/collection")
+        render tmpl, locals: { collection: rows }
+        true
+      else
+        false
+      end
+    end
+
+    def render_one row
+      @is_collection = false
+      if template_exists?(tmpl="#{GAR}/#{ @model.name.downcase.pluralize }/#{ @model.name.downcase }")
+        locals = {}
+        locals[@model.name.downcase.to_sym] = row
+        render tmpl, locals: locals
+        true
+      elsif template_exists?(tmpl="#{GAR}/base/item")
+        render tmpl, locals: { item: row }
+        true
+      else
+        false
+      end
+    end
+      
+
     def render_one_json(m)
       simple = GenericApiRails.config.simple_api rescue nil
-      
-      prefix = "generic_api_rails/#{ model.name.pluralize.downcase }"
-      template = "#{prefix}/item"
-      if !simple && self.template_exists?(template,[],true)
-        return JSON.parse(render_to_string(:partial => template , locals: { item: m }))
-      end
 
       include = m.class.reflect_on_all_associations.select do 
         |a| a.macro == :has_and_belongs_to_many or a.macro == :has_one
@@ -38,19 +92,7 @@ module GenericApiRails
       @collection = data
 
       if data.respond_to?(:collect)
-        if !simple
-          Rails.logger.info "Heeai"
-          # check for model-specific collection option:
-          if template_exists? "generic_api_rails/#{ @model.name.downcase.pluralize }/collection"
-            render "generic_api_rails/#{ @model.name.downcase.pluralize }/collection" && return
-          elsif template_exists?("generic_api_rails/#{ @model.name.downcase.pluralize }/item",[],true)
-            Rails.logger.info "Bizarre"
-            render "generic_api_rails/base/collection"
-            return
-          else
-            Rails.logger.info "WTRF"
-          end
-        end
+        return if render_many data,true
 
         meta = {}
         begin
@@ -70,6 +112,7 @@ module GenericApiRails
         meta = meta[:rows] if simple
         render json: meta
       else
+        return if render_one data
         render json: render_one_json(data)
       end
     end
@@ -102,6 +145,7 @@ module GenericApiRails
       
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
 
+      return if render_many(@instances,false)
       render_json @instances
     end
     
