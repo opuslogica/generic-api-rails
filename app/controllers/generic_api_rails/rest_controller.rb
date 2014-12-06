@@ -92,6 +92,7 @@ module GenericApiRails
       data = data.offset(@offset) if @offset
 
       simple = GenericApiRails.config.simple_api rescue nil
+
       @collection = data
 
       if data.respond_to?(:collect)
@@ -191,7 +192,7 @@ module GenericApiRails
               # 
               other_model = (key.to_s.gsub(/_id$/, "").camelize.safe_constantize).new.class rescue nil
               begin
-                query_begin = (other_model.find(val)).send(@model.name.tableize.to_sym) if other_model
+                query_begin = (other_model.unscoped.find(val)).send(@model.name.tableize.to_sym) if other_model
               rescue ActiveRecord::RecordNotFound
                 Rails.logger.info("GAR: Error finding the requested #{other_model.name}: #{val}")
                 render_error(ApiError::UNAUTHORIZED) and return false
@@ -218,7 +219,7 @@ module GenericApiRails
     end
 
     def read
-      @instance = @model.find(params[:id]) rescue nil
+      @instance = @model.unscoped.find(params[:id]) rescue nil
       @include = JSON.parse(params[:include]) rescue {}
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instance)
@@ -248,7 +249,7 @@ module GenericApiRails
     end
 
     def update
-      @instance = @model.find(params[:id])
+      @instance = @model.unscoped.find(params[:id])
       hash = params[:rest]
       hash ||= params
       hash = hash.to_hash.with_indifferent_access
