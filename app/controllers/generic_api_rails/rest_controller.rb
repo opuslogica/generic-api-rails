@@ -88,6 +88,9 @@ module GenericApiRails
     end
     
     def render_json(data)
+      data = data.limit(@limit) if @limit
+      data = data.offset(@offset) if @offset
+
       simple = GenericApiRails.config.simple_api rescue nil
       @collection = data
 
@@ -105,9 +108,6 @@ module GenericApiRails
           meta[:total] = data.length
         end
 
-        data = data.limit(@limit) if @limit
-        data = data.offset(@offset) if @offset
-
         meta[:rows] = data.collect { |m| render_one_json m }
         meta = meta[:rows] if simple
         render json: meta
@@ -122,6 +122,9 @@ module GenericApiRails
       @action = params[:action]
       @controller = self
       @request = request
+
+      @limit = params[:limit]
+      @offset = params[:offset]
     end
 
     def model
@@ -208,8 +211,6 @@ module GenericApiRails
           @instances = query_begin.all
         end
         
-        @limit = params[:limit]
-        @offset = params[:offset]
         @include = JSON.parse(params[:include]) rescue {}
 
         render_json(@instances)
