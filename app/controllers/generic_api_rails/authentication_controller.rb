@@ -2,8 +2,21 @@ require 'open-uri'
 require 'koala'
 
 class GenericApiRails::AuthenticationController < GenericApiRails::BaseController
-  skip_before_filter :api_setup, except: [:logout]
+  skip_before_filter :api_setup, except: [:logout,:change_password]
+  skip_before_filter :verify_authenticity_token
 
+  def change_password
+    old_password = params[:old_password]
+    new_password = params[:new_password]
+
+    render :json => { success: false , error: "Invalid password" }  and return unless Credential.authenticate(@credential.email.address,old_password)
+    
+    @credential.password = new_password
+    @credential.save
+    
+    render :json => { success: true }
+  end
+  
   def done
     render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential
     

@@ -11,6 +11,7 @@ GenericApiRails::Engine.routes.draw do
       post 'signup'
       get 'logout'
       post 'logout'
+      post 'change_password'
     end
 
     get    'version'                    => 'misc#version'
