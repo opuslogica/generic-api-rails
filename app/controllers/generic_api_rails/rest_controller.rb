@@ -267,7 +267,7 @@ module GenericApiRails
     end
 
     def destroy
-      @instance = model.find(params[:id])
+      @instance = model.unscoped.find(params[:id])
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
       
