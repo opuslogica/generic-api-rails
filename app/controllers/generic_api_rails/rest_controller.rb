@@ -143,9 +143,13 @@ module GenericApiRails
       GenericApiRails.config.authorize_with.call(@authenticated, action, resource)
     end
 
+    def default_scope
+      model
+    end
+
     def id_list
       ids = params[:ids].split ','
-      @instances = model.where(id: ids)
+      @instances = default_scope.where(id: ids)
       
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
 
@@ -201,7 +205,7 @@ module GenericApiRails
           end
         end
 
-        query_begin ||= model
+        query_begin ||= default_scope
         if do_search
           @instances = query_begin.where(search_hash)
           render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
