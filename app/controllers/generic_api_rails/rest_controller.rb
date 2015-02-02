@@ -31,13 +31,19 @@ module GenericApiRails
     before_filter :model
     skip_before_filter :verify_authenticity_token
 
+    def plural_template_name
+      @tmpl_plural ||= singular_template_name.pluralize
+    end
+    def singular_template_name
+      @tmpl_name ||= @model.name.underscore
+    end
+    
     def render_many rows,is_collection
       @is_collection = is_collection
       Rails.logger.info "Rendering many..."
-
-      if template_exists?(tmpl="#{GAR}/#{ @model.name.downcase.pluralize }/#{ @model.name.downcase.pluralize }")
+      if template_exists?(tmpl="#{GAR}/#{ plural_template_name }/#{ plural_template_name }")
         locals = {}
-        locals[@model.name.downcase.pluralize.to_sym] = rows
+        locals[plural_template_name.to_sym] = rows
         render tmpl, locals: locals
         true
       elsif template_exists?(tmpl="#{GAR}/base/collection")
@@ -50,9 +56,9 @@ module GenericApiRails
 
     def render_one row
       @is_collection = false
-      if template_exists?(tmpl="#{GAR}/#{ @model.name.downcase.pluralize }/#{ @model.name.downcase }")
+      if template_exists?(tmpl="#{GAR}/#{ plural_template_name }/#{ singular_template_name }")
         locals = {}
-        locals[@model.name.downcase.to_sym] = row
+        locals[singular_template_name.to_sym] = row
         render tmpl, locals: locals
         true
       elsif template_exists?(tmpl="#{GAR}/base/item")
@@ -88,6 +94,8 @@ module GenericApiRails
     end
     
     def render_json(data)
+      @count = data.count if data.respond_to? :count
+      
       data = data.limit(@limit) if @limit
       data = data.offset(@offset) if @offset
 
@@ -222,8 +230,12 @@ module GenericApiRails
       end
     end
 
+    def show
+      read
+    end
+    
     def read
-      @instance = @model.unscoped.find(params[:id]) rescue nil
+      @instance = @model.unscoped.find(params[:id])
       @include = JSON.parse(params[:include]) rescue {}
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instance)
