@@ -21,7 +21,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential
     
     # We cannot create a polymorphic association with find or create by, it appears
-    @api_token = ApiToken.find_or_create_by(credential: @credential)
+    @api_token = ApiToken.where(credential: @credential).first_or_create
     # @api_token = ApiToken.find_or_create_by(credential_id: @credential.id, credential_type: @crendential.class.name)
 
     # if @credential and @api_token
