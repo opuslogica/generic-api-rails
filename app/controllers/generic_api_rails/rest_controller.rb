@@ -235,7 +235,21 @@ module GenericApiRails
     end
     
     def read
-      @instance = @model.unscoped.find(params[:id])
+      # use find, but rescue away from a 404 exception, we need to
+      # render a 403 if the person isn't allowed to see that there
+      # isn't an item there:
+      @instance = (@model.unscoped.find(params[:id]) rescue nil)
+      
+      # if there is no model and the user doesn't have indexing
+      # privileges, we can't report to them that there isn't a model
+      # there, so we render this error:
+      render_error(ApiError::UNAUTHORIZED) and return false if !@instance && !authorized?(:index,model)
+
+      # but if the user is allowed to see any item in this collection
+      # (indexing privileges), and the item isn't there, we need to
+      # report it as a 404:
+      render_error(ActiveRecord::RecordNotFoundException) and return false unless @instance
+      
       @include = JSON.parse(params[:include]) rescue {}
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instance)
