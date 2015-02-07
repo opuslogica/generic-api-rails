@@ -5,6 +5,8 @@ module GenericApiRails
     before_filter :api_setup
 
     skip_before_filter :verify_authenticity_token, :only => [:options]
+
+    rescue_from ActiveRecord::RecordNotFound, with: :render_404
     
     def options
     end
@@ -32,6 +34,7 @@ module GenericApiRails
       end
       true
     end
+
 
     def api_setup
       @params = params
@@ -74,5 +77,11 @@ module GenericApiRails
       render :json => hash.as_json({}), :status => status
     end
 
+    @private
+    def render_404
+      errhash = { :error =>  { description: "Record not found" , code: 404, status_code: 404 } }
+      errhash = GenericApiRails.config.transform_error_with.call(errhash)
+      render :json => errhash , :status => 404
+    end
   end
 end

@@ -248,7 +248,7 @@ module GenericApiRails
       # but if the user is allowed to see any item in this collection
       # (indexing privileges), and the item isn't there, we need to
       # report it as a 404:
-      render_error(ActiveRecord::RecordNotFoundException) and return false unless @instance
+      raise ActiveRecord::RecordNotFound and return false unless @instance
       
       @include = JSON.parse(params[:include]) rescue {}
 
