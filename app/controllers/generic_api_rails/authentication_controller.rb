@@ -16,6 +16,22 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     
     render :json => { success: true }
   end
+
+  def reset_password
+    token = params[:token]
+    password = params[:password]
+
+    @credential = GenericApiRails.config.reset_password_with.call(token,password)
+
+    render :json => { error: { description: "Invalid token." } } and return false unless @credential
+    
+    done
+  end
+
+  def recover_password
+    success = GenericApiRails.config.recover_password_with.call()
+    render :json => { success: success }
+  end
   
   def done
     render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential

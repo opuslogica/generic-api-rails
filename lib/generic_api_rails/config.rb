@@ -36,6 +36,24 @@ module GenericApiRails
         @sign_up_with
       end
 
+      # reset_password_with takes (token,password), and should return
+      # the user if successful, and nil if unsuccessful.
+      def reset_password_with(&blk)
+        @reset_password_with = blk if blk
+        @reset_password_with
+      end
+
+      # recover_password_with takes a block takes an email as an
+      # argument, it returns true/false/nil depending on if it wants
+      # to report true or false to the end user.  It is technically
+      # more secure if it doesn't report failure to the user.
+      # True/false indicate success or failure, nil (the more secure
+      # option) reports nothing to the user.
+      def recover_password_with(&blk)
+        @recover_password_with = blk if blk
+        @recover_password_with
+      end
+      
       # For OAuth purposes, the API server tries to smoothen
       # differences between different authorization providers and
       # calls omniauth_with with a provider, uid, and email for
