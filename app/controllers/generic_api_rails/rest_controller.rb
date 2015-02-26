@@ -137,13 +137,19 @@ module GenericApiRails
     end
 
     def model
+
       namespace ||= params[:namespace].camelize if params.has_key? :namespace
-      model_name ||= params[:model].singularize.camelize
+      model_name ||= params[:model].singularize.camelize if params.has_key? :model
       if namespace
         qualified_name = "#{namespace}::#{model_name}" 
-      else
+      elsif model_name
         qualified_name = model_name
+      else
+        parts = self.class.name.split("::").from(1)
+        parts[parts.length-1] = parts[parts.length-1].gsub('Controller','').singularize
+        qualified_name = parts.join('::')
       end
+
       @model = qualified_name.constantize
     end
 
@@ -258,14 +264,14 @@ module GenericApiRails
     end
 
     def create
-      hash = params[:rest]
+      hash = JSON.parse(request.raw_post)
       hash ||= params
       @instance = model.new()
 
-      hash.delete(:controller)
-      hash.delete(:action)
-      hash.delete(:model)
-      hash.delete(:base)
+      # hash.delete(:controller) if hash.has_key? :controller
+      # hash.delete(:action) if hash.has_key? :action
+      # hash.delete(:model) if hash.has_key? :model
+      # hash.delete(:base) if hash.has_key? :base
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
@@ -273,14 +279,13 @@ module GenericApiRails
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:create, @instance)
       @instance.save
-      # puts "INSTANCE: ", @instance.attributes.to_s
  
       render_json @instance
     end
 
     def update
       @instance = @model.unscoped.find(params[:id])
-      hash = params[:rest]
+      hash = JSON.parse(request.raw_post)
       hash ||= params
       hash = hash.to_hash.with_indifferent_access
       hash.delete(:controller)
