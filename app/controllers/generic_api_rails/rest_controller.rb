@@ -144,8 +144,8 @@ module GenericApiRails
       else
         qualified_name = model_name
       end
-      @model = qualified_name.constantize rescue nil
-      @model ||= params[:model].camelize.constantize rescue nil
+      @model   = qualified_name.safe_constantize
+      @model ||= params[:model].camelize.safe_constantize
     end
 
     def authorized?(action, resource)
