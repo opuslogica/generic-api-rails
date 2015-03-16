@@ -24,12 +24,25 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     @credential = GenericApiRails.config.reset_password_with.call(token,password)
 
     render :json => { error: { description: "Invalid token." } } and return false unless @credential
+    if( @credential.errors.messages.length > 0) 
+      errors = {};
+      @credential.errors.each do |key,value|
+        if value.kind_of? Array
+          errors[key] = value.join(', ')
+        else
+          errors[key] = value
+        end
+      end
+      render :json => { :errors =>  errors }
+      return
+    end
     
     done
   end
 
   def recover_password
     success = GenericApiRails.config.recover_password_with.call()
+    
     render :json => { success: success }
   end
   
