@@ -150,7 +150,9 @@ module GenericApiRails
         qualified_name = parts.join('::')
       end
 
-      @model = qualified_name.constantize
+      @model   = qualified_name.safe_constantize
+      @model ||= params[:model].camelize.safe_constantize
+
     end
 
     def authorized?(action, resource)
