@@ -259,7 +259,7 @@ module GenericApiRails
     end
 
     def create
-      hash = params[:rest]
+      hash = params[:rest] || params[:base]
       hash ||= params
       @instance = model.new()
 
@@ -267,6 +267,7 @@ module GenericApiRails
       hash.delete(:action)
       hash.delete(:model)
       hash.delete(:base)
+      hash.delete(:format)
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
