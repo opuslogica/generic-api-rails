@@ -24,7 +24,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     @api_token = ApiToken.where(credential: @credential).first_or_create
     # @api_token = ApiToken.find_or_create_by(credential_id: @credential.id, credential_type: @crendential.class.name)
 
-    # if @credential and @api_token
+    #if @credential and @api_token
     #   res = @credential.as_json
     #   res[:email] = @credential.email.address
     #   res[:person_id] = @credential.member.person.id
@@ -90,7 +90,14 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       birthdate: fb_user["birthday"]
     }
 
-    @credential = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash)
+    @results = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash)
+
+    if @results[0].nil?
+      # error = @results[1]
+      @credential = nil
+    else
+      @credential = @results[0]
+    end
 
     done
   end
@@ -162,7 +169,14 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     options[:fname] = fname
     options[:lname] = lname
-    @credential = GenericApiRails.config.signup_with.call(username, password, options)
+    @results = GenericApiRails.config.signup_with.call(username, password, options)
+    if @results[0].nil?
+      # error = @results[1]
+      @credential = nil
+    else
+      @credential = @results[0]
+    end
+    
     done
   end
   
