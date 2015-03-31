@@ -41,7 +41,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   end
 
   def recover_password
-    success = GenericApiRails.config.recover_password_with.call()
+    success = GenericApiRails.config.recover_password_with.call(params[:email] || params[:username] || params[:login])
     
     render :json => { success: success }
   end
