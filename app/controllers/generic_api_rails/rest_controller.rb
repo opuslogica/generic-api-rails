@@ -108,8 +108,8 @@ module GenericApiRails
 
         meta = {}
         begin
-          if data.respond_to?(:count)
-            meta[:total] = data.count
+          if defined? @count
+            meta[:total] = @count
           end
         rescue
           # Error occurred trying to get count, instead of stopping
