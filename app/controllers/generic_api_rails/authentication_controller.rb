@@ -192,6 +192,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     options[:fname] = fname
     options[:lname] = lname
 
+    options[:password_confirmation] = params[:password_confirmation]
+
     @credential = GenericApiRails.config.signup_with.call(username, password, options)
     
     if( @credential.errors.messages.length > 0) 
