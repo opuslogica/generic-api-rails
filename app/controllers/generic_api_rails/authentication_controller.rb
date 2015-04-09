@@ -139,7 +139,12 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
       if api_token
         @credential = api_token.credential
-        (api_token.destroy and api_token = nil) if (not @credential) or (username && @credential.email.address != username)
+        if @credential.email.respond_to? :address
+          cred_email = @credential.email.address
+        else
+          cred_email = @credential.email
+        end
+        (api_token.destroy and api_token = nil) if (not @credential) or (username && cred_email.downcase != username.downcase)
       end
     end
 
@@ -175,10 +180,11 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   def signup
 #    errs = validate_signup_params params
 #    render :json => { :errors => errs } and return if errs
+
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
-    options = {}
+    options = params
     if not params.has_key?(:fname) and not params.has_key?(:lname) and params.has_key?(:name)
       options[:name] = params[:name]
       components = params[:name].split(" ") rescue [params[:name]]
