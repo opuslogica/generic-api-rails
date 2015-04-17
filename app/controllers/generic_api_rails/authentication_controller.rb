@@ -9,10 +9,11 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     old_password = params[:old_password]
     new_password = params[:new_password]
 
-    render :json => { success: false , error: "Invalid password" }  and return unless Credential.authenticate(@credential.email.address,old_password)
-    
-    @credential.password = new_password
-    @credential.save
+    render :json => { success: false, error: "Not logged in" } and return unless @authenticated
+
+    @res = GenericApiRails.config.change_password_with.call(@authenticated,old_password,new_password);
+
+    render :json => { success: false , error: "Invalid password" }  and return unless @res
     
     render :json => { success: true }
   end
