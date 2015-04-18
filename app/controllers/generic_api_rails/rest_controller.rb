@@ -108,8 +108,8 @@ module GenericApiRails
 
         meta = {}
         begin
-          if data.respond_to?(:count)
-            meta[:total] = data.count
+          if defined? @count
+            meta[:total] = @count
           end
         rescue
           # Error occurred trying to get count, instead of stopping
@@ -274,6 +274,7 @@ module GenericApiRails
       # hash.delete(:action) if hash.has_key? :action
       # hash.delete(:model) if hash.has_key? :model
       # hash.delete(:base) if hash.has_key? :base
+
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
