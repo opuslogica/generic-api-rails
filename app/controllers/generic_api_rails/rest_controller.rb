@@ -47,7 +47,11 @@ module GenericApiRails
         render tmpl, locals: locals
         true
       elsif template_exists?(tmpl="#{GAR}/base/collection")
-        render tmpl, locals: { collection: rows }
+        if @count
+          render tmpl, locals: { collection: rows, total: @count }
+        else
+          render tmpl, locals: { collection: rows}
+        end
         true
       else
         false
