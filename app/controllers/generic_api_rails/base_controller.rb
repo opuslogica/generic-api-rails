@@ -35,6 +35,9 @@ module GenericApiRails
       true
     end
 
+    def authorized?(action, resource)
+      GenericApiRails.config.authorize_with.call(@authenticated, action, resource)
+    end
 
     def api_setup
       @params = params

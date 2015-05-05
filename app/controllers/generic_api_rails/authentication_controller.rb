@@ -9,10 +9,11 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     old_password = params[:old_password]
     new_password = params[:new_password]
 
-    render :json => { success: false , error: "Invalid password" }  and return unless Credential.authenticate(@credential.email.address,old_password)
-    
-    @credential.password = new_password
-    @credential.save
+    render :json => { success: false, error: "Not logged in" } and return unless @authenticated
+
+    @res = GenericApiRails.config.change_password_with.call(@authenticated,old_password,new_password);
+
+    render :json => { success: false , error: "Invalid password" }  and return unless @res
     
     render :json => { success: true }
   end
@@ -41,7 +42,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   end
 
   def recover_password
-    success = GenericApiRails.config.recover_password_with.call()
+    success = GenericApiRails.config.recover_password_with.call(params[:email] || params[:username] || params[:login])
     
     render :json => { success: success }
   end
@@ -140,7 +141,12 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
       if api_token
         @credential = api_token.credential
-        (api_token.destroy and api_token = nil) if (not @credential) or (username && @credential.email.address != username)
+        if @credential.email.respond_to? :address
+          cred_email = @credential.email.address
+        else
+          cred_email = @credential.email
+        end
+        (api_token.destroy and api_token = nil) if (not @credential) or (username && cred_email.downcase != username.downcase)
       end
     end
 
@@ -176,10 +182,11 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   def signup
 #    errs = validate_signup_params params
 #    render :json => { :errors => errs } and return if errs
+
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
-    options = {}
+    options = params
     if not params.has_key?(:fname) and not params.has_key?(:lname) and params.has_key?(:name)
       options[:name] = params[:name]
       components = params[:name].split(" ") rescue [params[:name]]
@@ -192,6 +199,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     options[:fname] = fname
     options[:lname] = lname
+
+    options[:password_confirmation] = params[:password_confirmation]
 
     @credential = GenericApiRails.config.signup_with.call(username, password, options)
     
