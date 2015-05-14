@@ -51,7 +51,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential
     
     # We cannot create a polymorphic association with find or create by, it appears
-    @api_token = ApiToken.create(credential: @credential)
+    @api_token ||= ApiToken.create(credential: @credential)
     
     # @api_token = ApiToken.find_or_create_by(credential_id: @credential.id, credential_type: @crendential.class.name)
 
@@ -138,19 +138,19 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     logger.debug("INCOMING API TOKEN '#{incoming_api_token.presence}'")
 
     if incoming_api_token.present? and not password
-      api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
-      if api_token
+      @api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
+      if @api_token
         @credential = api_token.credential
         if @credential.email.respond_to? :address
           cred_email = @credential.email.address
         else
           cred_email = @credential.email
         end
-        (api_token.destroy and api_token = nil) if (not @credential) or (username && cred_email.downcase != username.downcase)
+        (@api_token.destroy and @api_token = nil) if (not @credential) or (username && cred_email.downcase != username.downcase)
       end
     end
 
-    if not api_token
+    if not @api_token
       if username.blank? or password.blank?
         render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return
       else
