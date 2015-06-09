@@ -282,6 +282,10 @@ module GenericApiRails
       render_json @instance
     end
 
+    def assign_instance_attributes(hash)
+      @instance.assign_attributes(hash)
+    end
+
     def update
       @instance = @model.unscoped.find(params[:id])
       hash = JSON.parse(request.raw_post)
@@ -291,7 +295,8 @@ module GenericApiRails
       hash.delete(:action)
       hash.delete(:model)
       hash.delete(:id)
-      @instance.assign_attributes(hash)
+
+      assign_instance_attributes(hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:update, @instance)
 
