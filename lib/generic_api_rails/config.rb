@@ -113,6 +113,19 @@ module GenericApiRails
 
         model_specific[symbol]
       end
+
+      # Configuration for setting up how API tokens are delivered to
+      # new users.  By default GAR "reuses" api tokens per-user,
+      # issuing only one API token to each user until they sign out
+      # that one session.  In practice, this would cause a logout on
+      # one browser/session to log out all other sessions.  You can
+      # also configure it to issue a new API token for every login event
+      def new_api_token_every_login(boolean=nil)
+        if @new_api_token_every_login == nil && boolean!=nil
+          @new_api_token_every_login = boolean
+        end
+        @new_api_token_every_login || false
+      end
       
       # Enable facebook-based API authentication in the app (requires
       # :app_id and :app_secret):
