@@ -43,6 +43,13 @@ module GenericApiRails
         @reset_password_with
       end
 
+      # change_password_with takes authenticated,old_password,new_password
+      # andshould return the user object if successful, nil if unsuccessful.
+      def change_password_with(&blk)
+        @change_password_with = blk if blk
+        @change_password_with
+      end
+
       # recover_password_with takes a block takes an email as an
       # argument, it returns true/false/nil depending on if it wants
       # to report true or false to the end user.  It is technically
