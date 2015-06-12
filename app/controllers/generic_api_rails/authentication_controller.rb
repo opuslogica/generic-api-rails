@@ -204,7 +204,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     @credential = GenericApiRails.config.signup_with.call(username, password, options)
     
-    if( @credential.errors.messages.length > 0) 
+    if( @credential.respond_to?(:errors) && @credential.errors.messages.length > 0) 
       errors = {};
       @credential.errors.each do |key,value|
         if value.kind_of? Array
