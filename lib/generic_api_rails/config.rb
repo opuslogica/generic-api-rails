@@ -141,6 +141,21 @@ module GenericApiRails
       def facebook_hash
         @facebook_hash
       end
+
+      # Enable linkedin-based API authentication in the app
+      # hash must include :client_id, :client_secret, and :redirect_uri
+      def use_linkedin(hash)
+        @linkedin_hash = hash
+        @linkedin_hash
+      end
+
+      def use_linkedin?
+        !!@linkedin_hash
+      end
+
+      def linkedin_hash
+        @linkedin_hash
+      end
     end
   end
 end

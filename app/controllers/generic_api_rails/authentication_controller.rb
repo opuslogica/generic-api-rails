@@ -128,6 +128,69 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     done
   end
 
+  # log in/sign up with linkedin
+  def linkedin
+    linkedin_config = GenericApiRails.config.linkedin_hash
+    
+    # Get the "Real" authorization code
+    temp_access_token = params['access_token']
+
+    code_uri = URI('https://www.linkedin.com/uas/oauth2/accessToken')
+    oauth_https = Net::HTTP.new(code_uri.host, code_uri.port)
+    oauth_https.use_ssl = true
+
+    post_data = {
+      :grant_type => 'authorization_code',
+      :code => temp_access_token,
+      :client_id => linkedin_config[:client_id],
+      :client_secret => linkedin_config[:client_secret],
+      :redirect_uri => linkedin_config[:redirect_uri]
+    }
+    post_data_string = URI.escape(post_data.collect{|k,v| "#{k}=#{v}"}.join('&'))
+
+    code_response = oauth_https.post(code_uri.path, post_data_string) 
+
+    if code_response.code != 200
+      #todo -- What should we return?
+    end
+
+    auth_response = JSON.parse(code_response.body)
+    access_token = auth_response['access_token']
+
+    if access_token.nil?
+      #todo -- What should we return?
+    end
+
+    # Get the user's info
+    user_uri = URI('https://api.linkedin.com/v1/people/~?format=json')
+    api_https = Net::HTTP.new(user_uri.host, user_uri.port)
+    api_https.use_ssl = true
+
+    request = Net::HTTP::Get.new(user_uri.request_uri)
+    request['Authorization'] = "Bearer #{access_token}"
+
+    user_response = api_https.request(request)
+    if user_response.code != 200
+      #todo -- What should we return?
+    end
+
+    byebug
+
+    user_info = JSON.parse(user_response.body)
+    uid = user_info['id']
+
+    person_hash = {
+      fname: user_info["firstName"],
+      lname: user_info["lastName"]
+      #minitial: user_info["middle_name"],
+      #profile_picture_uri: profile_pic,
+      #birthdate: user_info["birthday"]
+    }
+    
+
+    @credential = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash)
+  end
+
   def login
     username = params[:username] || params[:email] || params[:login]
     incoming_api_token = params[:api_token] || request.headers["api-token"]
