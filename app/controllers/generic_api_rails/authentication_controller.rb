@@ -162,7 +162,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     end
 
     # Get the user's info
-    user_uri = URI('https://api.linkedin.com/v1/people/~?format=json')
+    # user_uri = URI('https://api.linkedin.com/v1/people/~?format=json')
+    user_uri =URI('https://api.linkedin.com/v1/people/~:(id,email-address,firstName,lastName)?format=json')
     api_https = Net::HTTP.new(user_uri.host, user_uri.port)
     api_https.use_ssl = true
 
@@ -178,6 +179,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     user_info = JSON.parse(user_response.body)
     uid = user_info['id']
+    @email = user_info['emailAddress']
 
     person_hash = {
       fname: user_info["firstName"],
