@@ -151,14 +151,16 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     code_response = oauth_https.post(code_uri.path, post_data_string) 
 
     if code_response.code != 200
-      #todo -- What should we return?
+      render :json => { success: false , error: "Could not authenticate using Linkedin" }
+      return
     end
 
     auth_response = JSON.parse(code_response.body)
     access_token = auth_response['access_token']
 
     if access_token.nil?
-      #todo -- What should we return?
+      render :json => { success: false , error: "Could not authenticate using Linkedin" }
+      return
     end
 
     # Get the user's info
@@ -172,7 +174,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     user_response = api_https.request(request)
     if user_response.code != 200
-      #todo -- What should we return?
+      render :json => { success: false , error: "Could not get user info from Linkedin" }
+      return
     end
 
     byebug
@@ -189,7 +192,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       #birthdate: user_info["birthday"]
     }
     
-
+    # You'll have to define GenericApiRails.config.oauth_with for your
+    # particular application
     @credential = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash)
   end
 
