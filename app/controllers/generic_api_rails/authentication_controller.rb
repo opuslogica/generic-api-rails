@@ -144,13 +144,13 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       :code => temp_access_token,
       :client_id => linkedin_config[:client_id],
       :client_secret => linkedin_config[:client_secret],
-      :redirect_uri => linkedin_config[:redirect_uri]
+      :redirect_uri => params['redirect_uri'] || linkedin_config[:redirect_uri]
     }
     post_data_string = URI.escape(post_data.collect{|k,v| "#{k}=#{v}"}.join('&'))
 
     code_response = oauth_https.post(code_uri.path, post_data_string) 
 
-    if code_response.code != 200
+    if code_response.code.to_s != 200.to_s
       render :json => { success: false , error: "Could not authenticate using Linkedin" }
       return
     end
@@ -159,7 +159,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     access_token = auth_response['access_token']
 
     if access_token.nil?
-      render :json => { success: false , error: "Could not authenticate using Linkedin" }
+      render :json => { success: false , error: "Could not get access token from Linkedin" }
       return
     end
 
@@ -173,12 +173,10 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     request['Authorization'] = "Bearer #{access_token}"
 
     user_response = api_https.request(request)
-    if user_response.code != 200
+    if user_response.code.to_s != 200.to_s
       render :json => { success: false , error: "Could not get user info from Linkedin" }
       return
     end
-
-    byebug
 
     user_info = JSON.parse(user_response.body)
     uid = user_info['id']
