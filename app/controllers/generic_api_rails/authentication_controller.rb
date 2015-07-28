@@ -128,6 +128,39 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     done
   end
 
+  # log in/sign up with Google
+  def google
+    byebug
+    google_config = GenericApiRails.config.google_hash
+    access_token = params['access_token']
+
+    # get the token
+    #https://www.googleapis.com/oauth2/v3/token
+    code_uri = URI('https://www.googleapis.com/oauth2/v3/token');
+    oauth_https = Net::HTTP.new(code_uri.host, code_uri.port)
+    oauth_https.use_ssl = true
+
+    post_data = {
+      :code => access_token,
+      :client_id => google_config[:client_id],
+      :client_secret => google_config[:client_secret],
+      :redirect_uri => access_token['redirect_uri'],
+      :grant_type => 'authorization_code'
+    }
+
+    post_data_string = URI.escape(post_data.collect{|k,v| "#{k}=#{v}"}.join('&'))
+    code_response = oauth_https.post(code_uri.path, post_data_string) 
+
+    if code_response.code.to_s != 200.to_s
+      render :json => { success: false , error: "Could not authenticate using Linkedin" }
+      return
+    end
+
+    auth_response = JSON.parse(code_response.body)
+    access_token = auth_response['access_token']
+
+  end
+
   # log in/sign up with linkedin
   def linkedin
     linkedin_config = GenericApiRails.config.linkedin_hash

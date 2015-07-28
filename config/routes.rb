@@ -7,6 +7,8 @@ GenericApiRails::Engine.routes.draw do
       post 'facebook'
       get 'linkedin' 
       post 'linkedin'
+      get 'google' 
+      post 'google'
       get 'login'
       post 'login'
       get 'signup'

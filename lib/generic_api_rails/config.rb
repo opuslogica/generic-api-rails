@@ -156,6 +156,21 @@ module GenericApiRails
       def linkedin_hash
         @linkedin_hash
       end
+
+      # Enable google-based API authentication in the app
+      # hash must include :client_id, :client_secret, and :redirect_uri(?)
+      def use_google(hash)
+        @google_hash = hash
+        @google_hash
+      end
+
+      def use_google?
+        !!@google_hash
+      end
+
+      def google_hash
+        @google_hash
+      end
     end
   end
 end
