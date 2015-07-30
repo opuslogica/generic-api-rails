@@ -9,22 +9,55 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     old_password = params[:old_password]
     new_password = params[:new_password]
 
-    render :json => { success: false , error: "Invalid password" }  and return unless Credential.authenticate(@credential.email.address,old_password)
-    
-    @credential.password = new_password
-    @credential.save
+    render :json => { success: false, error: "Not logged in" } and return unless @authenticated
+
+    @res = GenericApiRails.config.change_password_with.call(@authenticated,old_password,new_password);
+
+    render :json => { success: false , error: "Invalid password" }  and return unless @res
     
     render :json => { success: true }
+  end
+
+  def reset_password
+    token = params[:token]
+    password = params[:password]
+
+    @credential = GenericApiRails.config.reset_password_with.call(token,password)
+
+    render :json => { error: { description: "Invalid token." } } and return false unless @credential
+    if( @credential.errors.messages.length > 0) 
+      errors = {};
+      @credential.errors.each do |key,value|
+        if value.kind_of? Array
+          errors[key] = value.join(', ')
+        else
+          errors[key] = value
+        end
+      end
+      render :json => { :errors =>  errors }
+      return
+    end
+    
+    done
+  end
+
+  def recover_password
+    success = GenericApiRails.config.recover_password_with.call(params[:email] || params[:username] || params[:login])
+    
+    render :json => { success: success }
   end
   
   def done
     render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return false unless @credential
     
     # We cannot create a polymorphic association with find or create by, it appears
-    @api_token = ApiToken.where(credential: @credential).first_or_create
-    # @api_token = ApiToken.find_or_create_by(credential_id: @credential.id, credential_type: @crendential.class.name)
-
-    #if @credential and @api_token
+    if GenericApiRails.config.new_api_token_every_login == true
+      @api_token ||= ApiToken.create(credential: @credential)
+    else
+      @api_token ||= ApiToken.where(credential: @credential).first_or_create
+    end
+    
+    # if @credential and @api_token
     #   res = @credential.as_json
     #   res[:email] = @credential.email.address
     #   res[:person_id] = @credential.member.person.id
@@ -114,14 +147,19 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     logger.debug("INCOMING API TOKEN '#{incoming_api_token.presence}'")
 
     if incoming_api_token.present? and not password
-      api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
-      if api_token
-        @credential = api_token.credential
-        (api_token.destroy and api_token = nil) if (not @credential) or (username && @credential.email.address != username)
+      @api_token = ApiToken.find_by(token: incoming_api_token) rescue nil
+      if @api_token
+        @credential = @api_token.credential
+        if @credential.email.respond_to? :address
+          cred_email = @credential.email.address
+        else
+          cred_email = @credential.email
+        end
+        (@api_token.destroy and @api_token = nil) if (not @credential) or (username && cred_email.downcase != username.downcase)
       end
     end
 
-    if not api_token
+    if not @api_token
       if username.blank? or password.blank?
         render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return
       else
@@ -151,12 +189,13 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   end
 
   def signup
-    errs = validate_signup_params params
-    render :json => { :errors => errs } and return if errs
+#    errs = validate_signup_params params
+#    render :json => { :errors => errs } and return if errs
+
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
-    options = {}
+    options = params
     if not params.has_key?(:fname) and not params.has_key?(:lname) and params.has_key?(:name)
       options[:name] = params[:name]
       components = params[:name].split(" ") rescue [params[:name]]
@@ -169,15 +208,39 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     options[:fname] = fname
     options[:lname] = lname
+    
+    options[:password_confirmation] = params[:password_confirmation]
+     
     @results = GenericApiRails.config.signup_with.call(username, password, options)
+    errors = {};
     if @results[0].nil?
-      # error = @results[1]
       @credential = nil
+      errors[:message] = @results[1]
+      return
     else
       @credential = @results[0]
+
+      if(@credential.respond_to?(:errors) && @credential.errors.messages.length > 0)    
+        @credential.errors.each do |key,value|
+          if value.kind_of? Array
+            errors[key] = value.join(', ')
+          else
+            errors[key] = value
+          end
+        end
+        render :json => { :errors =>  errors }
+        return
+      end
+
+      if( !@credential.id )
+        render :json => { :error => { message: "Unknown error signing up" } }
+        return
+      end
     end
     
     done
+
+    render 'login'
   end
   
   def logout

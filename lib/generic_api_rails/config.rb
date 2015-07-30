@@ -36,6 +36,31 @@ module GenericApiRails
         @sign_up_with
       end
 
+      # reset_password_with takes (token,password), and should return
+      # the user if successful, and nil if unsuccessful.
+      def reset_password_with(&blk)
+        @reset_password_with = blk if blk
+        @reset_password_with
+      end
+
+      # change_password_with takes authenticated,old_password,new_password
+      # andshould return the user object if successful, nil if unsuccessful.
+      def change_password_with(&blk)
+        @change_password_with = blk if blk
+        @change_password_with
+      end
+
+      # recover_password_with takes a block takes an email as an
+      # argument, it returns true/false/nil depending on if it wants
+      # to report true or false to the end user.  It is technically
+      # more secure if it doesn't report failure to the user.
+      # True/false indicate success or failure, nil (the more secure
+      # option) reports nothing to the user.
+      def recover_password_with(&blk)
+        @recover_password_with = blk if blk
+        @recover_password_with
+      end
+      
       # For OAuth purposes, the API server tries to smoothen
       # differences between different authorization providers and
       # calls omniauth_with with a provider, uid, and email for
@@ -87,6 +112,19 @@ module GenericApiRails
         model_specific[symbol] = blk if blk
 
         model_specific[symbol]
+      end
+
+      # Configuration for setting up how API tokens are delivered to
+      # new users.  By default GAR "reuses" api tokens per-user,
+      # issuing only one API token to each user until they sign out
+      # that one session.  In practice, this would cause a logout on
+      # one browser/session to log out all other sessions.  You can
+      # also configure it to issue a new API token for every login event
+      def new_api_token_every_login(boolean=nil)
+        if @new_api_token_every_login == nil && boolean!=nil
+          @new_api_token_every_login = boolean
+        end
+        @new_api_token_every_login || false
       end
       
       # Enable facebook-based API authentication in the app (requires

@@ -40,10 +40,10 @@ module GenericApiRails
     
     def render_many rows,is_collection
       @is_collection = is_collection
-      Rails.logger.info "Rendering many..."
-      if template_exists?(tmpl="#{GAR}/#{ plural_template_name }/#{ plural_template_name }")
+      
+      if template_exists?(tmpl="#{GAR}/#{ model.new.to_partial_path.pluralize }")
         locals = {}
-        locals[plural_template_name.to_sym] = rows
+        locals[@model.model_name.element.pluralize] = rows
         render tmpl, locals: locals
         true
       elsif template_exists?(tmpl="#{GAR}/base/collection")
@@ -60,9 +60,9 @@ module GenericApiRails
 
     def render_one row
       @is_collection = false
-      if template_exists?(tmpl="#{GAR}/#{ plural_template_name }/#{ singular_template_name }")
+      if template_exists?(tmpl="#{GAR}/#{ row.to_partial_path }")
         locals = {}
-        locals[singular_template_name.to_sym] = row
+        locals[model.model_name.element.to_sym] = row
         render tmpl, locals: locals
         true
       elsif template_exists?(tmpl="#{GAR}/base/item")
@@ -141,19 +141,22 @@ module GenericApiRails
     end
 
     def model
+
       namespace ||= params[:namespace].camelize if params.has_key? :namespace
-      model_name ||= params[:model].singularize.camelize
+      model_name ||= params[:model].singularize.camelize if params.has_key? :model
       if namespace
         qualified_name = "#{namespace}::#{model_name}" 
-      else
+      elsif model_name
         qualified_name = model_name
+      else
+        parts = self.class.name.split("::").from(1)
+        parts[parts.length-1] = parts[parts.length-1].gsub('Controller','').singularize
+        qualified_name = parts.join('::')
       end
+
       @model   = qualified_name.safe_constantize
       @model ||= params[:model].camelize.safe_constantize
-    end
 
-    def authorized?(action, resource)
-      GenericApiRails.config.authorize_with.call(@authenticated, action, resource)
     end
 
     def default_scope
@@ -263,37 +266,41 @@ module GenericApiRails
     end
 
     def create
-      hash = params[:rest] || params[:base]
+      hash = JSON.parse(request.raw_post)
       hash ||= params
       @instance = model.new()
 
-      hash.delete(:controller)
-      hash.delete(:action)
-      hash.delete(:model)
-      hash.delete(:base)
-      hash.delete(:format)
+      # hash.delete(:controller) if hash.has_key? :controller
+      # hash.delete(:action) if hash.has_key? :action
+      # hash.delete(:model) if hash.has_key? :model
+      # hash.delete(:base) if hash.has_key? :base
+
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
-      @instance.assign_attributes(hash.to_hash)
+      assign_instance_attributes(hash.to_hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:create, @instance)
       @instance.save
-      # puts "INSTANCE: ", @instance.attributes.to_s
  
       render_json @instance
     end
 
+    def assign_instance_attributes(hash)
+      @instance.assign_attributes(hash)
+    end
+
     def update
       @instance = @model.unscoped.find(params[:id])
-      hash = params[:rest]
+      hash = JSON.parse(request.raw_post)
       hash ||= params
       hash = hash.to_hash.with_indifferent_access
       hash.delete(:controller)
       hash.delete(:action)
       hash.delete(:model)
       hash.delete(:id)
-      @instance.assign_attributes(hash)
+
+      assign_instance_attributes(hash)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:update, @instance)
 
