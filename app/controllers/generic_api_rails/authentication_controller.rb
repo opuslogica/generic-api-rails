@@ -130,7 +130,6 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
   # log in/sign up with Google
   def google
-    byebug
     google_config = GenericApiRails.config.google_hash
     access_token = params['access_token']
 
@@ -159,6 +158,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     auth_response = JSON.parse(code_response.body)
     access_token = auth_response['access_token']
 
+    logger.debug("INCOMING API TOKEN '#{incoming_api_token.presence}'")
+    render :json => { success: false , error: "Could not authenticate using Linkedin" }
   end
 
   # log in/sign up with linkedin
