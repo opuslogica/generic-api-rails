@@ -69,12 +69,22 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     
   end
 
+  # To configure facebook authorization, add the following to
+  # config/initializers/generic_api.rb:
+  #
+  #  config.use_facebook(app_id: '1234567890', app_secret: '123abc123abc')
+  #
   def facebook
     # By default, client-side authentication gives you a short-lived
     # token:
     short_lived_token = params[:access_token]
     
     fb_hash = GenericApiRails.config.facebook_hash
+    if fb_hash.nil?
+      logger.error('Facebook login/signup not configured. For configuration instructions see controllers/generic_api_rails/authentication_controller.rb in the generic_api_rails project')
+      render :json => { success: false , error: "Facebook login/signup not configured" }
+      return
+    end
 
     app_id = fb_hash[:app_id]
     app_secret = fb_hash[:app_secret]
@@ -158,7 +168,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     code_response = oauth_https.post(code_uri.path, post_data_string) 
 
     if code_response.code.to_s != 200.to_s
-      render :json => { success: false , error: "Could not authenticate using Linkedin" }
+      render :json => { success: false , error: "Could not authenticate using Google" }
       return
     end
 
@@ -166,12 +176,22 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     access_token = auth_response['access_token']
 
     logger.debug("INCOMING API TOKEN '#{incoming_api_token.presence}'")
-    render :json => { success: false , error: "Could not authenticate using Linkedin" }
+    render :json => { success: false , error: "Could not authenticate using Google" }
   end
 
-  # log in/sign up with linkedin
+  # Log in/sign up with linkedin
+  #
+  # To configure Linkedin authorization, add the following to
+  # config/initializers/generic_api.rb:
+  #
+  #  config.use_linkedin(client_id: '1234567890', client_secret: 'abcdefghij', redirect_uri: 'http://foo.bar.com/linkedin_redirect')
   def linkedin
     linkedin_config = GenericApiRails.config.linkedin_hash
+    if linkedin_config.nil?
+      logger.error('Linkedin login/signup not configured. For configuration instructions see controllers/generic_api_rails/authentication_controller.rb in the generic_api_rails project')
+      render :json => { success: false , error: "Linkedin login/signup not configured" }
+      return
+    end
     
     # Get the "Real" authorization code
     temp_access_token = params['access_token']
