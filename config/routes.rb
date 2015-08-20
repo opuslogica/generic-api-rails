@@ -5,6 +5,10 @@ GenericApiRails::Engine.routes.draw do
     namespace "authentication" do 
       get 'facebook' 
       post 'facebook'
+      get 'linkedin' 
+      post 'linkedin'
+      get 'google' 
+      post 'google'
       get 'login'
       post 'login'
       get 'signup'
