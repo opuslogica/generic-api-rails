@@ -310,9 +310,6 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   end
 
   def signup
-#    errs = validate_signup_params params
-#    render :json => { :errors => errs } and return if errs
-
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
@@ -337,13 +334,13 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     if @results[0].nil?
       @credential = nil
       errors[:message] = @results[1]
-      return
+      render json: { errors: errors } and return
     else
       @credential = @results[0]
 
-      if(@credential.respond_to?(:errors) && @credential.errors.messages.length > 0)    
+      if @credential.respond_to?(:errors) and @credential.errors.messages.length > 0
         @credential.errors.each do |key,value|
-          if value.kind_of? Array
+          if value.kind_of?(Array)
             errors[key] = value.join(', ')
           else
             errors[key] = value
@@ -353,7 +350,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
         return
       end
 
-      if( !@credential.id )
+      if not @credential.id
         render :json => { :error => { message: "Unknown error signing up" } }
         return
       end
