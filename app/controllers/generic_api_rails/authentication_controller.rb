@@ -258,7 +258,15 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     
     # You'll have to define GenericApiRails.config.oauth_with for your
     # particular application
-    @credential = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash)
+    @results = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash)
+
+    if @results[0].nil?
+      @credential = nil
+    else
+      @credential = @results[0]
+    end
+
+    done
   end
 
   def login
