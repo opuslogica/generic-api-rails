@@ -215,7 +215,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       # log the error message if there is one
       if code_response.body
         resp = JSON.parse(code_response.body)
-        logger.error("Error authenticating user against Linkedin: #{resp.error_description}")
+        logger.error("Error authenticating user against Linkedin: #{resp['error_description']}")
       end
       render :json => { success: false , error: "Could not authenticate using Linkedin" }
       return
