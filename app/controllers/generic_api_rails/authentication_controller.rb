@@ -210,6 +210,11 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     code_response = oauth_https.post(code_uri.path, post_data_string) 
 
     if code_response.code.to_s != 200.to_s
+      # log the error message if there is one
+      if code_response.body
+        resp = JSON.parse(code_response.body)
+        logger.error("Error authenticating user against Linkedin: #{resp.error_description}")
+      end
       render :json => { success: false , error: "Could not authenticate using Linkedin" }
       return
     end
