@@ -65,8 +65,6 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # else
     #   raise "failed to create api token? should be impossible..."
     # end
-
-    
   end
 
   # To configure facebook authorization, add the following to
@@ -295,7 +293,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     if not @api_token
       if username.blank? or password.blank?
-        render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return
+        render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return
       else
         @credential = GenericApiRails.config.login_with.call(username, password)
       end
