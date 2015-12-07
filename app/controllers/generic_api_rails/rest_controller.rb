@@ -38,9 +38,8 @@ module GenericApiRails
       @tmpl_name ||= @model.name.underscore
     end
     
-    def render_many rows,is_collection
+    def render_many(rows, is_collection)
       @is_collection = is_collection
-      
       if template_exists?(tmpl="#{GAR}/#{ model.new.to_partial_path.pluralize }")
         locals = {}
         locals[@model.model_name.element.pluralize] = rows
