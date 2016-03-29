@@ -131,7 +131,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       birthdate: fb_user["birthday"]
     }
 
-    @results = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash)
+    @results = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash, provider_info: fb_user)
 
     if @results[0].nil?
       # error = @results[1]
@@ -256,7 +256,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     
     # You'll have to define GenericApiRails.config.oauth_with for your
     # particular application
-    @results = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash)
+    @results = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash, provider_info: user_info)
 
     if @results[0].nil?
       @credential = nil
