@@ -173,6 +173,8 @@ module GenericApiRails
     end
     
     def index
+      
+      render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, model)
       query_begin = nil
 
       if params[:ids]
@@ -227,7 +229,7 @@ module GenericApiRails
         elsif special_handler
           render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, @instances)
         else
-          render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:index, model)
+          render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:read, model)
           @instances = query_begin.all
         end
         
