@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.version     = GenericApiRails::VERSION
   s.authors     = ["Daniel Staudigel", "Brian J. Fox", "Khrysle Rae-Dunn"]
   s.email       = ["dstaudigel@opuslogica.com", "bfox@opuslogica.com", "krae@opuslogica.com"]
-  s.homepage    = "https://opuslogica.com/opus-source"
+  s.homepage    = "https://github.com/opuslogica/generic-api-rails"
   s.summary     = "Provides a simple API interface for dealing with the database."
   s.description = "Simple API server with easy configuratino for authentication mechanism & automagic RESTful api."
-
-  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.license     = "AGPLv3"
+  s.files = Dir["{app,config,db,lib}/**/*", "LICENSE.txt", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 4"
+  s.add_dependency "rails", ">= 4"
 
   s.add_runtime_dependency "koala"
 
