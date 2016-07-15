@@ -14,7 +14,7 @@ module GenericApiRails
       end
 
       def mount_engine
-        inject_into_file routes_path, :after => "Application.routes.draw do\n" do
+        inject_into_file routes_path, :after => ".routes.draw do\n" do
           "  mount GenericApiRails::Engine => '/api' \n"
         end
       end
