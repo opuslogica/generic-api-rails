@@ -8,3 +8,9 @@ test/dummy/tmp/
 test/dummy/.sass-cache
 *#
 .poll_stamp
+*\#
+*~
+*.\#*
+*.swp
+*.DS_Store
+.byebug_history
