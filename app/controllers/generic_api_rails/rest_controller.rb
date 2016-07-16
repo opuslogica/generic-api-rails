@@ -27,9 +27,8 @@ module GenericApiRails
   GAR = "generic_api_rails"
 
   class RestController < BaseController
-    before_filter :setup
-    before_filter :model
-    skip_before_filter :verify_authenticity_token
+    before_action :setup
+    before_action :model
 
     def plural_template_name
       @tmpl_plural ||= singular_template_name.pluralize

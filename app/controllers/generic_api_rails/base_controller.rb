@@ -1,10 +1,8 @@
 module GenericApiRails
   class BaseController < ::ApplicationController
-    before_filter :cors_set_access_control_headers
-    before_filter :cors_preflight_check
-    before_filter :api_setup
-
-    skip_before_filter :verify_authenticity_token, :only => [:options]
+    before_action :cors_set_access_control_headers
+    before_action :cors_preflight_check
+    before_action :api_setup
 
     rescue_from ActiveRecord::RecordNotFound, with: :render_404
     
