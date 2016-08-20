@@ -261,14 +261,15 @@ module GenericApiRails
     end
 
     def create
-      hash = JSON.parse(request.raw_post)
+      hash = JSON.parse(request.raw_post) rescue nil
       hash ||= params
       @instance = model.new()
 
-      # hash.delete(:controller) if hash.has_key? :controller
-      # hash.delete(:action) if hash.has_key? :action
-      # hash.delete(:model) if hash.has_key? :model
-      # hash.delete(:base) if hash.has_key? :base
+      hash.delete(:controller) if hash.has_key? :controller
+      hash.delete(:action) if hash.has_key? :action
+      hash.delete(:model) if hash.has_key? :model
+      hash.delete(:base) if hash.has_key? :base
+      hash.delete(:format) if hash.has_key? :format
 
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
