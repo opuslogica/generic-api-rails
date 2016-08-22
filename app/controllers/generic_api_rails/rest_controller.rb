@@ -274,7 +274,7 @@ module GenericApiRails
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
-      assign_instance_attributes(hash.to_hash)
+      assign_instance_attributes(hash.to_h)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:create, @instance)
       @instance.save
