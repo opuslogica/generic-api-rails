@@ -41,8 +41,8 @@ module GenericApiRails
       @params = params
       @request = request
 
-      @oli_device_id   = params[:oli_device_id"] || request.headers['OLI-Device-ID']
-      @oli_device_id ||= params[:oli_device_identifier"] || request.headers['OLI-Device-Identifier']
+      @oli_device_id   = params[:oli_device_id] || request.headers['OLI-Device-ID']
+      @oli_device_id ||= params[:oli_device_identifier] || request.headers['OLI-Device-Identifier']
 
       incoming_token = params[:api_token] || request.headers['api-token']
       @api_token = api_token = ApiToken.find_by_token(incoming_token) if incoming_token
