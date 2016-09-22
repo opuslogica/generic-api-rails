@@ -67,7 +67,7 @@ module GenericApiRails
         false
       end
     end
-      
+    
 
     def render_one_json(m)
       simple = GenericApiRails.config.simple_api rescue nil
@@ -278,7 +278,7 @@ module GenericApiRails
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:create, @instance)
       @instance.save
- 
+      
       render_json @instance
     end
 
@@ -306,20 +306,20 @@ module GenericApiRails
     end
 
     def destroy_one(id)
-      @instance = model.unscoped.find(id)
-
-      render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
-      
-      @instance.destroy!
-      
-      render json: { success: true }
     end
     
     def destroy
-      return destroy_one(params[:id]) if params[:id]
-      if params[:ids]
+      if params[:id]
+        @instance = model.unscoped.find(id)
+        render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
+        @instance.destroy!
+      elsif params[:ids]
         ids = params[:ids].split(",")
-        ids.each { |id| destroy_one(id) }
+        ids.each do |id|
+          @instance = model.unscoped.find(id)
+          render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
+          @instance.destroy!
+        end
       end
       
       render json: { success: true }
