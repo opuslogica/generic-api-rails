@@ -84,7 +84,9 @@ module GenericApiRails
 
       include = include.merge @include if @include
 
-      h = m.as_json(for_member: (@authenticated.member rescue nil), include: include)
+      options = { for_member: (@authenticated.member rescue nil), include: include }
+      opions[:deep] = true if @deep
+      h = m.as_json(options)
       h = { model: h } if not simple
       if m.errors.keys
         h[:errors] = m.errors.messages
@@ -133,6 +135,7 @@ module GenericApiRails
 
       @limit = params[:limit]
       @offset = params[:offset]
+      @deep = params[:deep]
     end
 
     def model
