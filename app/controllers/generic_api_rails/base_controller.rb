@@ -27,7 +27,7 @@ module GenericApiRails
         headers['Access-Control-Allow-Methods'] = 'GET, PUT, POST, DELETE, OPTIONS, PATCH'
         headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token, OLI-Device-ID, OLI-Device-Identifier'
         headers['Access-Control-Max-Age'] = '1728000'
-        render(text: '', content_type: 'text/plain')
+        render(plain: '', content_type: 'text/plain')
         false
       end
       true
