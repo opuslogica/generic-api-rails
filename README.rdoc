@@ -1,9 +1,10 @@
 = GenericApiRails
 
-This project rocks and uses MIT-LICENSE.
+This project rocks and uses the GPLv3 license.
 
 Usage:
+=====
 
-gem 'generic_api_rails', git: 'git@git.opuslogica.com:generic_api_rails.git', branch: 'master'
-bundle install --path=vendor/ruby
-bundle exec rails generate generic_api_rails:install
+  gem 'generic_api_rails', git: 'git@git.opuslogica.com:generic_api_rails.git', branch: 'master'
+  bundle install --path=vendor/ruby
+  bundle exec rails generate generic_api_rails:install
