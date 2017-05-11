@@ -1,4 +1,4 @@
-class CreateApiTokens < ActiveRecord::Migration
+class CreateApiTokens < ActiveRecord::Migration[5.0]
   def change
     create_table :api_tokens do |t|
       t.references :person, index: true

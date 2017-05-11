@@ -1,4 +1,4 @@
-class CreateApiErrors < ActiveRecord::Migration
+class CreateApiErrors < ActiveRecord::Migration[5.0]
   def change
     create_table :api_errors do |t|
       t.integer :code
