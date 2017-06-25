@@ -22,4 +22,5 @@ GenericApiRails::Engine.routes.draw do
     get    '(:namespace/):model/:id'    => 'rest#read',    constraints: { id: /(\h|-)*/, model: /\D+/ }
     match  '(:namespace/):model/:id'    => 'rest#update',  constraints: { id: /(\h|-)*/, model: /\D+/ }, via: [:post, :put, :patch]
     delete '(:namespace/):model(/:id)'  => 'rest#destroy', constraints: { id: /(\h|-)*/, model: /\D+/ }
-    
+  end
+end
