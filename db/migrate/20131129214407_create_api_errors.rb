@@ -6,8 +6,7 @@ class CreateApiErrors < ActiveRecord::Migration[5.0]
       t.integer :status_code
 
       t.timestamps
-    end rescue nil
-
+    end
     ApiError.make_standard_errors rescue nil
   end
 end
