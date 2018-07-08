@@ -5,7 +5,7 @@ require "generic_api_rails/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "generic-api-rails"
+  s.name        = "generic_api_rails"
   s.version     = GenericApiRails::VERSION
   s.authors     = ["Daniel Staudigel", "Brian J. Fox", "Khrysle Rae-Dunn"]
   s.email       = ["dstaudigel@opuslogica.com", "bfox@opuslogica.com", "krae@opuslogica.com"]
