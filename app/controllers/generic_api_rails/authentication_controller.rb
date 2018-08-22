@@ -85,7 +85,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     begin
       res = URI.parse(token_upgrade_uri).read
 
-      res_hash = Rack::Utils.parse_query(res)
+      res_hash = JSON.parse(res)
 
       long_lived_token = res_hash['access_token']
     rescue Exception => x
