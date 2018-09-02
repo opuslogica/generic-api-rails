@@ -1,6 +1,12 @@
 = GenericApiRails
 
-This project rocks and uses the GPLv3 license.
+This AGPL licensed codebase delivers a drop-in ruby-on-rails Gem that creates a complete and featureful RESTful API for your existing database.  Installing it for the most basic use takes 10 seconds, seriously.
+
+After installation, you have an unsecured RESTful API for your existing database.  The entire way in which this was built is non-invasive, and doesn't require code modification - uninstalling it is as simple as removing the gem and single added route.
+
+To secure and modify the behavior of the API, read and edit `config/initializers/generic_api.rb`, which is well documented.
+
+Works extremely well with the `generic_people_rails`, also by Opus Logica, and also AGPL licensed.
 
 Usage:
 =====
