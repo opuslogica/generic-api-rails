@@ -10,7 +10,7 @@ require "generic_api_rails/version"
 Gem::Specification.new do |gem|
   gem.name              = "generic_api_rails"
   gem.version           = GenericApiRails::VERSION
-  gem.authors           = ["Daniel Staudigel", "Brian J. Fox", "Khrysle Rae-Dunn"]
+  gem.authors           = ["Daniel Staudigel", "Brian J. Fox", "Khrystle Rae-Dunn"]
   gem.email             = ["dstaudigel@opuslogica.com", "bfox@opuslogica.com", "krae@opuslogica.com"]
   gem.description       = "Simple API server with easy configuratino for authentication mechanism & automagic RESTful api."
   gem.summary           = "Provides a simple API interface for dealing with the database."
