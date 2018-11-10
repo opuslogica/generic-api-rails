@@ -65,16 +65,24 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # else
     #   raise "failed to create api token? should be impossible..."
     # end
-
-    
   end
 
+  # To configure facebook authorization, add the following to
+  # config/initializers/generic_api.rb:
+  #
+  #  config.use_facebook(app_id: '1234567890', app_secret: '123abc123abc')
+  #
   def facebook
     # By default, client-side authentication gives you a short-lived
     # token:
     short_lived_token = params[:access_token]
     
     fb_hash = GenericApiRails.config.facebook_hash
+    if fb_hash.nil?
+      logger.error('Facebook login/signup not configured. For configuration instructions see controllers/generic_api_rails/authentication_controller.rb in the generic_api_rails project')
+      render :json => { success: false , error: "Facebook login/signup not configured" }
+      return
+    end
 
     app_id = fb_hash[:app_id]
     app_secret = fb_hash[:app_secret]
@@ -123,7 +131,138 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
       birthdate: fb_user["birthday"]
     }
 
-    @credential = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash)
+    @results = GenericApiRails.config.oauth_with.call(provider: "facebook", uid: uid, email: @email , person: person_hash, provider_info: fb_user)
+
+    if @results[0].nil?
+      # error = @results[1]
+      @credential = nil
+    else
+      @credential = @results[0]
+    end
+
+    done
+  end
+
+  # log in/sign up with Google
+  def google
+    google_config = GenericApiRails.config.google_hash
+    access_token = params['access_token']
+
+    # get the token
+    #https://www.googleapis.com/oauth2/v3/token
+    code_uri = URI('https://www.googleapis.com/oauth2/v3/token');
+    oauth_https = Net::HTTP.new(code_uri.host, code_uri.port)
+    oauth_https.use_ssl = true
+
+    post_data = {
+      :code => access_token,
+      :client_id => google_config[:client_id],
+      :client_secret => google_config[:client_secret],
+      :redirect_uri => access_token['redirect_uri'],
+      :grant_type => 'authorization_code'
+    }
+
+    post_data_string = URI.escape(post_data.collect{|k,v| "#{k}=#{v}"}.join('&'))
+    code_response = oauth_https.post(code_uri.path, post_data_string) 
+
+    if code_response.code.to_s != 200.to_s
+      render :json => { success: false , error: "Could not authenticate using Google" }
+      return
+    end
+
+    auth_response = JSON.parse(code_response.body)
+    access_token = auth_response['access_token']
+
+    logger.debug("INCOMING API TOKEN '#{incoming_api_token.presence}'")
+    render :json => { success: false , error: "Could not authenticate using Google" }
+  end
+
+  # Log in/sign up with linkedin
+  #
+  # To configure Linkedin authorization, add the following to
+  # config/initializers/generic_api.rb:
+  #
+  #  config.use_linkedin(client_id: '1234567890', client_secret: 'abcdefghij', redirect_uri: 'http://foo.bar.com/linkedin_redirect')
+  def linkedin
+    linkedin_config = GenericApiRails.config.linkedin_hash
+    if linkedin_config.nil?
+      logger.error('Linkedin login/signup not configured. For configuration instructions see controllers/generic_api_rails/authentication_controller.rb in the generic_api_rails project')
+      render :json => { success: false , error: "Linkedin login/signup not configured" }
+      return
+    end
+    
+    # Get the "Real" authorization code
+    temp_access_token = params['access_token']
+
+    code_uri = URI('https://www.linkedin.com/uas/oauth2/accessToken')
+    oauth_https = Net::HTTP.new(code_uri.host, code_uri.port)
+    oauth_https.use_ssl = true
+
+    post_data = {
+      :grant_type => 'authorization_code',
+      :code => temp_access_token,
+      :client_id => linkedin_config[:client_id],
+      :client_secret => linkedin_config[:client_secret],
+      :redirect_uri => params['redirect_uri'] || linkedin_config[:redirect_uri]
+    }
+    post_data_string = URI.escape(post_data.collect{|k,v| "#{k}=#{v}"}.join('&'))
+
+    code_response = oauth_https.post(code_uri.path, post_data_string) 
+
+    if code_response.code.to_s != 200.to_s
+      # log the error message if there is one
+      if code_response.body
+        resp = JSON.parse(code_response.body)
+        logger.error("Error authenticating user against Linkedin: #{resp['error_description']}")
+      end
+      render :json => { success: false , error: "Could not authenticate using Linkedin" }
+      return
+    end
+
+    auth_response = JSON.parse(code_response.body)
+    access_token = auth_response['access_token']
+
+    if access_token.nil?
+      render :json => { success: false , error: "Could not get access token from Linkedin" }
+      return
+    end
+
+    # Get the user's info
+    # user_uri = URI('https://api.linkedin.com/v1/people/~?format=json')
+    user_uri =URI('https://api.linkedin.com/v1/people/~:(id,email-address,firstName,lastName)?format=json')
+    api_https = Net::HTTP.new(user_uri.host, user_uri.port)
+    api_https.use_ssl = true
+
+    request = Net::HTTP::Get.new(user_uri.request_uri)
+    request['Authorization'] = "Bearer #{access_token}"
+
+    user_response = api_https.request(request)
+    if user_response.code.to_s != 200.to_s
+      render :json => { success: false , error: "Could not get user info from Linkedin" }
+      return
+    end
+
+    user_info = JSON.parse(user_response.body)
+    uid = user_info['id']
+    @email = user_info['emailAddress']
+
+    person_hash = {
+      fname: user_info["firstName"],
+      lname: user_info["lastName"]
+      #minitial: user_info["middle_name"],
+      #profile_picture_uri: profile_pic,
+      #birthdate: user_info["birthday"]
+    }
+    
+    # You'll have to define GenericApiRails.config.oauth_with for your
+    # particular application
+    @results = GenericApiRails.config.oauth_with.call(provider: "linkedin", uid: uid, email: @email , person: person_hash, provider_info: user_info)
+
+    if @results[0].nil?
+      @credential = nil
+    else
+      @credential = @results[0]
+    end
 
     done
   end
@@ -154,7 +293,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     if not @api_token
       if username.blank? or password.blank?
-        render_error ApiError::INVALID_USERNAME_OR_PASSWORD and return
+        render_error(ApiError::INVALID_USERNAME_OR_PASSWORD) and return
       else
         @credential = GenericApiRails.config.login_with.call(username, password)
       end
@@ -182,9 +321,6 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
   end
 
   def signup
-#    errs = validate_signup_params params
-#    render :json => { :errors => errs } and return if errs
-
     username = params[:username] || params[:login] || params[:email]
     password = params[:password]
 
@@ -201,27 +337,34 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     options[:fname] = fname
     options[:lname] = lname
-
-    options[:password_confirmation] = params[:password_confirmation]
-
-    @credential = GenericApiRails.config.signup_with.call(username, password, options)
     
-    if( @credential.respond_to?(:errors) && @credential.errors.messages.length > 0) 
-      errors = {};
-      @credential.errors.each do |key,value|
-        if value.kind_of? Array
-          errors[key] = value.join(', ')
-        else
-          errors[key] = value
-        end
-      end
-      render :json => { :errors =>  errors }
-      return
-    end
+    options[:password_confirmation] = params[:password_confirmation]
+     
+    @results = GenericApiRails.config.signup_with.call(username, password, options)
+    errors = {};
+    if @results[0].nil?
+      @credential = nil
+      errors[:message] = @results[1]
+      render json: { errors: errors } and return
+    else
+      @credential = @results[0]
 
-    if( !@credential.id )
-      render :json => { :error => { message: "Unknown error signing up" } }
-      return
+      if @credential.respond_to?(:errors) and @credential.errors.messages.length > 0
+        @credential.errors.each do |key,value|
+          if value.kind_of?(Array)
+            errors[key] = value.join(', ')
+          else
+            errors[key] = value
+          end
+        end
+        render :json => { :errors =>  errors }
+        return
+      end
+
+      if not @credential.id
+        render :json => { :error => { message: "Unknown error signing up" } }
+        return
+      end
     end
     
     done
