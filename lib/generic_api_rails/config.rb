@@ -78,7 +78,7 @@ module GenericApiRails
       # config.authorize_with do |user,action,resource|
       #
       # - user is whatever authorize_with returns
-      # - action is a symbol that is :index, :show, :create, :update, :destroy
+      # - action is a symbol that is :index, :read, :create, :update, :destroy
       # - resource is an individual model or collection 
       def authorize_with(&blk)
         @authorize_with = blk if blk

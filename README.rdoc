@@ -18,4 +18,12 @@ In your Gemfile:
 Then install it:
 
   bundle install --path=vendor
+=======
+This project rocks and uses the GPLv3 license.
+
+Usage:
+=====
+
+  gem 'generic_api_rails', git: 'git@git.opuslogica.com:generic_api_rails.git', branch: 'rails5'
+  bundle install --path=vendor
   bundle exec rails generate generic_api_rails:install

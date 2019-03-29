@@ -19,10 +19,10 @@ GenericApiRails::Engine.routes.draw do
     get    'version'                    => 'misc#version'
     get    'whoami'                     => 'misc#whoami'
 
-    get    '(:namespace/):model/:id'    => 'rest#read',    constraints: { :id => /\d+/, :model => /\D+/ }
-    match  '(:namespace/):model/:id'    => 'rest#update',  constraints: { :id => /\d+/, :model => /\D+/ }, via: [:post, :put, :patch]
-    delete '(:namespace/):model/:id'    => 'rest#destroy', constraints: { :id => /\d+/, :model => /\D+/ }
-    get    '(:namespace/):model'        => 'rest#index',   constraints: { :id => /\d+/, :model => /\D+/ }
-    post   '(:namespace/):model'        => 'rest#create',  constraints: { :id => /\d+/, :model => /\D+/ }
+    get    '(:namespace/):model/:id'    => 'rest#read',    constraints: { id: /(\h|-)*/, model: /\D+/ }
+    match  '(:namespace/):model/:id'    => 'rest#update',  constraints: { id: /(\h|-)*/, model: /\D+/ }, via: [:post, :put, :patch]
+    delete '(:namespace/):model(/:id)'  => 'rest#destroy', constraints: { id: /(\h|-)*/, model: /\D+/ }
+    get    '(:namespace/):model'        => 'rest#index',   constraints: { id: /(\h|-)*/, model: /\D+/ }
+    post   '(:namespace/):model'        => 'rest#create',  constraints: { id: /(\h|-)*/, model: /\D+/ }
   end
 end

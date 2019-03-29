@@ -27,9 +27,8 @@ module GenericApiRails
   GAR = "generic_api_rails"
 
   class RestController < BaseController
-    before_filter :setup
-    before_filter :model
-    skip_before_filter :verify_authenticity_token
+    before_action :setup
+    before_action :model
 
     def plural_template_name
       @tmpl_plural ||= singular_template_name.pluralize
@@ -68,7 +67,7 @@ module GenericApiRails
         false
       end
     end
-      
+    
 
     def render_one_json(m)
       simple = GenericApiRails.config.simple_api rescue nil
@@ -85,7 +84,9 @@ module GenericApiRails
 
       include = include.merge @include if @include
 
-      h = m.as_json(for_member: (@authenticated.member rescue nil), include: include)
+      options = { for_member: (@authenticated.member rescue nil), include: include }
+      options[:deep] = true if @deep
+      h = m.as_json(options)
       h = { model: h } if not simple
       if m.errors.keys
         h[:errors] = m.errors.messages
@@ -134,6 +135,7 @@ module GenericApiRails
 
       @limit = params[:limit]
       @offset = params[:offset]
+      @deep = params[:deep]
     end
 
     def model
@@ -262,23 +264,24 @@ module GenericApiRails
     end
 
     def create
-      hash = JSON.parse(request.raw_post)
+      hash = JSON.parse(request.raw_post) rescue nil
       hash ||= params
       @instance = model.new()
 
-      # hash.delete(:controller) if hash.has_key? :controller
-      # hash.delete(:action) if hash.has_key? :action
-      # hash.delete(:model) if hash.has_key? :model
-      # hash.delete(:base) if hash.has_key? :base
+      hash.delete(:controller) if hash.has_key? :controller
+      hash.delete(:action) if hash.has_key? :action
+      hash.delete(:model) if hash.has_key? :model
+      hash.delete(:base) if hash.has_key? :base
+      hash.delete(:format) if hash.has_key? :format
 
 
       # params.require(:rest).permit(params[:rest].keys.collect { |k| k.to_sym })
 
-      assign_instance_attributes(hash.to_hash)
+      assign_instance_attributes(hash.to_h)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:create, @instance)
       @instance.save
- 
+      
       render_json @instance
     end
 
@@ -288,7 +291,8 @@ module GenericApiRails
 
     def update
       @instance = @model.unscoped.find(params[:id])
-      hash = JSON.parse(request.raw_post)
+      params.keys.each {|k| params.permit(k) }
+      hash = JSON.parse(request.raw_post) rescue nil
       hash ||= params
       hash = hash.to_hash.with_indifferent_access
       hash.delete(:controller)
@@ -296,7 +300,9 @@ module GenericApiRails
       hash.delete(:model)
       hash.delete(:id)
 
-      assign_instance_attributes(hash)
+      assignable = {}
+      hash.keys.each { |k| assignable[k] = hash[k] if @instance.respond_to?(k) }
+      assign_instance_attributes(assignable)
 
       render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:update, @instance)
 
@@ -306,11 +312,18 @@ module GenericApiRails
     end
 
     def destroy
-      @instance = model.unscoped.find(params[:id])
-
-      render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
-      
-      @instance.destroy!
+      if params[:id]
+        @instance = model.unscoped.find(params[:id])
+        render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
+        @instance.destroy!
+      elsif params[:ids]
+        ids = params[:ids].split(",")
+        ids.each do |id|
+          @instance = model.unscoped.find(id)
+          render_error(ApiError::UNAUTHORIZED) and return false unless authorized?(:destroy, @instance)
+          @instance.destroy!
+        end
+      end
       
       render json: { success: true }
     end

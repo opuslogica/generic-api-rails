@@ -1,12 +1,12 @@
-class CreateApiTokens < ActiveRecord::Migration
+class CreateApiTokens < ActiveRecord::Migration[5.1][5.0]
   def change
     create_table :api_tokens do |t|
       t.references :person, index: true
-      t.string     :credential_type, limit: 64
-      t.integer    :credential_id
+      t.references :credential, polymorphic: true
       t.string     :token, limit: 64
       t.timestamps
-    end
-    add_index :api_tokens, [:credential_id, :credential_type]
+    end rescue nil
+    add_index :api_tokens, [:credential_id, :credential_type] rescue nil
+    add_index :api_tokens, [:token] rescue nil
   end
 end

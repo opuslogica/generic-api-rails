@@ -1,10 +1,8 @@
 module GenericApiRails
   class BaseController < ::ApplicationController
-    before_filter :cors_set_access_control_headers
-    before_filter :cors_preflight_check
-    before_filter :api_setup
-
-    skip_before_filter :verify_authenticity_token, :only => [:options]
+    before_action :cors_set_access_control_headers
+    before_action :cors_preflight_check
+    before_action :api_setup
 
     rescue_from ActiveRecord::RecordNotFound, with: :render_404
     
@@ -17,7 +15,7 @@ module GenericApiRails
       response.headers['Access-Control-Allow-Credentials'] = 'true'
       response.headers['Access-Control-Allow-Methods'] = 'GET, PUT, POST, DELETE, OPTIONS, PATCH'
       response.headers['Access-Control-Max-Age'] = "1728000"
-      response.headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token'
+      response.headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token, OLI-Device-ID, OLI-Device-Identifier'
     end
 
     # If this is a preflight OPTIONS request, then short-circuit the
@@ -27,9 +25,9 @@ module GenericApiRails
       if request.method == "OPTIONS"
         headers['Access-Control-Allow-Origin'] = '*'
         headers['Access-Control-Allow-Methods'] = 'GET, PUT, POST, DELETE, OPTIONS, PATCH'
-        headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token'
+        headers['Access-Control-Allow-Headers'] = 'X-CSRF-Token, X-Requested-With, X-Prototype-Version, content-type, api-token, OLI-Device-ID, OLI-Device-Identifier'
         headers['Access-Control-Max-Age'] = '1728000'
-        render(text: '', content_type: 'text/plain')
+        render(plain: '', content_type: 'text/plain')
         false
       end
       true
@@ -42,6 +40,9 @@ module GenericApiRails
     def api_setup
       @params = params
       @request = request
+
+      @oli_device_id   = params[:oli_device_id] || request.headers['OLI-Device-ID']
+      @oli_device_id ||= params[:oli_device_identifier] || request.headers['OLI-Device-Identifier']
 
       incoming_token = params[:api_token] || request.headers['api-token']
       @api_token = api_token = ApiToken.find_by_token(incoming_token) if incoming_token
