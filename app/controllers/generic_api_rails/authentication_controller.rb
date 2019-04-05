@@ -77,6 +77,8 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
 
     app_id = fb_hash[:app_id]
     app_secret = fb_hash[:app_secret]
+    fields = fb_hash[:fields]
+    fields ||= "email,first_name,last_name,middle_name,birthday,about,location"
 
     # to upgrade it, hit this URI, and use the token it hands back:
     token_upgrade_uri = "https://graph.facebook.com/oauth/access_token?client_id=#{app_id}&client_secret=#{app_secret}&grant_type=fb_exchange_token&fb_exchange_token=#{short_lived_token}"
@@ -103,7 +105,7 @@ class GenericApiRails::AuthenticationController < GenericApiRails::BaseControlle
     # need.
 
     @graph = ::Koala::Facebook::API.new(long_lived_token, app_secret)
-    fb_user = @graph.get_object("me", fields: "email,first_name,last_name,middle_name,birthday,about,location")
+    fb_user = @graph.get_object("me", fields: fields)
     # logger.info("FB_USER: #{fb_user}")
     uid = fb_user["id"]
     profile_pic = @graph.get_picture(uid, { height: 500, width: 500 })
