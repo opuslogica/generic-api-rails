@@ -2,8 +2,8 @@ require 'open-uri'
 require 'koala'
 
 class GenericApiRails::AuthenticationController < GenericApiRails::BaseController
-  skip_before_filter :api_setup, except: [:logout,:change_password]
-  skip_before_filter :verify_authenticity_token
+  skip_before_action :api_setup, except: [:logout,:change_password]
+  skip_before_action :verify_authenticity_token
 
   def change_password
     old_password = params[:old_password]
